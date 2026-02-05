@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+  /* --- 1. MODERN DESIGN SYSTEM --- */
+  :root {
+    --primary: #10b981;    /* Emerald - Fresh & Trustworthy */
+    --slate-900: #0f172a;  /* Deep Slate - Premium contrast */
+    --slate-600: #475569;  /* Secondary text */
+    --bg-main: #f8fafc;    /* Very soft blue-grey background */
+    --card-shadow: 0 20px 25px -5px rgba(0,0,0,0.04), 0 10px 10px -5px rgba(0,0,0,0.02);
+    --radius: 24px;
+  }
+
+  body { 
+    margin: 0; 
+    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+    background-color: var(--bg-main); 
+    color: var(--slate-900);
+    letter-spacing: -0.01em;
+  }
+
+  /* --- 2. GLASS-MORPHIC HEADER --- */
+  header { 
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 16px 6%;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .logo-text { 
+    font-weight: 900; 
+    font-size: 1.4rem; 
+    letter-spacing: -1px; 
+    color: var(--slate-900);
+    text-decoration: none;
+  }
+
+  .search-container {
+    background: white;
+    flex-grow: 1;
+    max-width: 500px;
+    margin: 0 40px;
+    display: flex;
+    align-items: center;
+    padding: 10px 18px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+  
+  .search-container:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  }
+
+  .search-input { 
+    width: 100%; border: none; outline: none; font-size: 14px; background: transparent; 
+  }
+
+  nav a { 
+    color: var(--slate-900); text-decoration: none; font-weight: 600; font-size: 14px; 
+    margin-left: 24px; transition: color 0.2s;
+  }
+  nav a:hover { color: var(--primary); }
+
+  /* --- 3. MINIMAL CATEGORY BAR --- */
+  .category-bar {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 20px 0;
+    overflow-x: auto;
+    background: var(--bg-main);
+  }
+
+  .category-item {
+    text-decoration: none;
+    color: var(--slate-600);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    padding: 8px 16px;
+    border-radius: 100px;
+  }
+
+  .category-item:hover {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+
+  /* --- 4. THE SPLIT LAYOUT (BORROW PAGE) --- */
+  .grid-container {
+    max-width: 1140px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 60px;
+    padding: 0 24px;
+  }
+
+  .gallery-card {
+    background: white;
+    padding: 16px;
+    border-radius: var(--radius);
+    box-shadow: var(--card-shadow);
+  }
+
+  .main-img {
+    width: 100%;
+    aspect-ratio: 1.2 / 1;
+    background: #e2e8f0;
+    border-radius: 20px;
+  }
+
+  .item-info h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    margin: 24px 0 16px;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+
+  .tag {
+    background: #ecfdf5;
+    color: var(--primary);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  /* --- 5. THE ACTION CARD --- */
+  .action-card {
+    background: white;
+    padding: 40px;
+    border-radius: var(--radius);
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08);
+    height: fit-content;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+  }
+
+  .price-tag { font-size: 2.5rem; font-weight: 900; margin-bottom: 30px; }
+  .price-tag span { font-size: 1rem; color: var(--slate-600); font-weight: 500; }
+
+  .date-picker-custom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .date-box {
+    background: #f1f5f9;
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    transition: 0.2s;
+  }
+  .date-box:focus-within { border-color: var(--primary); background: white; }
+  .date-box label { font-size: 10px; font-weight: 800; color: var(--slate-600); }
+  .date-box input { border: none; background: transparent; width: 100%; font-weight: 700; outline: none; }
+
+  .cost-item { display: flex; justify-content: space-between; margin-bottom: 14px; color: var(--slate-600); font-size: 15px; }
+  .total { color: var(--slate-900); font-weight: 900; font-size: 20px; padding-top: 15px; border-top: 2px solid #f1f5f9; }
+
+  .btn-primary {
+    background: var(--slate-900);
+    color: white;
+    width: 100%;
+    padding: 20px;
+    border-radius: 18px;
+    border: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+  }
+  .btn-primary:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(15, 23, 42, 0.3);
+    background: var(--primary);
+  }
+
+  .neighbor-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .avatar { width: 48px; height: 48px; border-radius: 16px; background: #cbd5e1; }
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="#" class="logo-text">NeighborNodes.</a>
+    
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Find tools, cameras, or bikes near you...">
+    </div>
+
+    <nav>
+      <a href="#">Explore</a>
+      <a href="#">How it works</a>
+      <a href="#" style="background: var(--slate-900); color:white; padding: 10px 20px; border-radius: 12px;">Sign In</a>
+    </nav>
+  </header>
+
+  <div class="category-bar">
+    <a href="#" class="category-item">Tools</a>
+    <a href="#" class="category-item">Electronics</a>
+    <a href="#" class="category-item">Kitchen</a>
+    <a href="#" class="category-item">Outdoor</a>
+    <a href="#" class="category-item">Media</a>
+    <a href="#" class="category-item">Sports</a>
+  </div>
+
+  <div class="grid-container">
+    <div class="content-side">
+      <div class="gallery-card">
+        <div class="main-img"></div>
+      </div>
+      
+      <div class="item-info">
+        <span class="tag">Verified Hardware</span>
+        <h1>Canon EOS R6</h1>
+        <p style="color: var(--slate-600); font-size: 1.2rem; max-width: 500px;">
+          Elevate your creative projects with this flagship mirrorless camera. Trusted by 18 neighbors for professional results.
+        </p>
+        
+        <div style="display:flex; gap:50px; margin-top:40px;">
+          <div><h4 style="margin:0; font-size: 20px;">4.9 ★</h4><small style="color:var(--slate-600); font-weight:600;">18 Borrows</small></div>
+          <div><h4 style="margin:0; font-size: 20px;">400m</h4><small style="color:var(--slate-600); font-weight:600;">Location</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-side">
+      <div class="action-card">
+        <div class="price-tag">₹500 <span>/ day</span></div>
+
+        <div class="date-picker-custom">
+          <div class="date-box">
+            <label>START DATE</label>
+            <input type="date" value="2026-01-28">
+          </div>
+          <div class="date-box">
+            <label>END DATE</label>
+            <input type="date" value="2026-01-30">
+          </div>
+        </div>
+
+        <div class="cost-breakdown">
+          <div class="cost-item"><span>Duration</span> <span>2 Days</span></div>
+          <div class="cost-item"><span>Security deposit</span> <span>₹5,000</span></div>
+          <div class="cost-item total"><span>Total cost</span> <span>₹6,099</span></div>
+        </div>
+
+        <button class="btn-primary">Reserve Item</button>
+        
+        <div class="neighbor-info">
+          <div class="avatar"></div>
+          <div>
+            <div style="font-weight:800; font-size:15px;">Amit Sharma</div>
+            <div style="font-size:12px; color:var(--slate-600);">Neighbor since 2024 • ★★★★★</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
