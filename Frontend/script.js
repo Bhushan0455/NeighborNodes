@@ -1,68 +1,69 @@
-// ===============================
-// NeighborNodes Frontend Script
-// Connects Frontend → Node.js Backend
-// ===============================
-
-// 🔗 Change this when you deploy backend online
 const API_BASE_URL = "http://localhost:5000/api";
 
-
-// -------------------------------
-// BORROW BUTTON HANDLER
-// -------------------------------
-async function borrowItem(itemName) {
-  try {
-
-    // ⚠️ For now using demo user values
-    // Later you will take from login form
-    const borrowData = {
-      item_name: itemName,
-      borrower_name: "Demo User",
-      address: "Mumbai"
-    };
-
-    const response = await fetch(`${API_BASE_URL}/borrow`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(borrowData)
-    });
-
-    const result = await response.json();
-
-    alert("✅ Borrow request sent successfully!");
-    console.log("Server Response:", result);
-
-  } catch (error) {
-    console.error("Borrow Error:", error);
-    alert("❌ Failed to send request. Is backend running?");
-  }
-}
-
-
-// -------------------------------
-// AUTO ATTACH EVENTS TO BUTTONS
-// -------------------------------
-
-// When page loads, attach click events
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. Identify active elements
+    const homeBorrowBtns = document.querySelectorAll(".borrow-btn");
+    const reserveBtn = document.getElementById("reserveBtn");
 
-  // Find ALL borrow buttons
-  const borrowButtons = document.querySelectorAll(".borrow-btn");
+    // --- HOME PAGE LOGIC (index.html) ---
+    if (homeBorrowBtns.length > 0) {
+        homeBorrowBtns.forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                const itemId = btn.getAttribute("data-item-id");
+                // Redirect to borrow.html with item ID as a parameter
+                window.location.href = `borrow.html?id=${itemId}`;
+            });
+        });
+    }
 
-  borrowButtons.forEach((btn) => {
+    // --- BORROW PAGE LOGIC (borrow.html) ---
+    if (reserveBtn) {
+        reserveBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
 
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
+            // Extract data from URL and Inputs
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = urlParams.get('id') || 1; // Fallback to 1 for testing
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
 
-      // Get item name from card title
-      const card = btn.closest(".item-card");
-      const itemName = card.querySelector("h3").innerText;
+            // Prepare payload for PostgreSQL
+            const borrowData = {
+                item_id: parseInt(itemId),
+                borrower_id: 1, // Mock user ID (Update this after login is built)
+                start_date: startDate,
+                end_date: endDate
+            };
 
-      borrowItem(itemName);
-    });
+            // Basic Validation
+            if (!startDate || !endDate) {
+                alert("Please select both start and end dates.");
+                return;
+            }
 
-  });
+            try {
+                // Send to Node.js Backend
+                const response = await fetch(`${API_BASE_URL}/borrow`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(borrowData)
+                });
 
+                const result = await response.json();
+
+                if (result.success) {
+                    alert("✅ Borrow request recorded in PostgreSQL!");
+                    reserveBtn.innerText = "Requested";
+                    reserveBtn.style.background = "#10b981";
+                    reserveBtn.disabled = true;
+                } else {
+                    alert("❌ Error: " + result.error);
+                }
+            } catch (error) {
+                console.error("Backend Error:", error);
+                alert("❌ Server is not responding. Check your Node.js console.");
+            }
+        });
+    }
 });

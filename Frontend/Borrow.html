@@ -1,34 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
-
+    <title>NeighborNodes - Borrow</title>
 </head>
 <body>
 
   <header>
-    <a href="#" class="logo-text">NeighborNodes.</a>
-    
+    <a href="index.html" class="logo-text" style="text-decoration:none; color:inherit; font-weight:800; font-size:22px;">NeighborNodes.</a>
     <div class="search-container">
-      <input type="text" class="search-input" placeholder="Find tools, cameras, or bikes near you...">
+      <input type="text" class="search-input" placeholder="Find tools, cameras, or bikes...">
     </div>
-
     <nav>
       <a href="#">Explore</a>
       <a href="#">How it works</a>
-      <a href="#" style="background: var(--slate-900); color:white; padding: 10px 20px; border-radius: 12px;">Sign In</a>
+      <a href="#" style="background: var(--slate-900); color:white; padding: 10px 20px; border-radius: 12px; text-decoration:none;">Sign In</a>
     </nav>
   </header>
-
-  <div class="category-bar">
-    <a href="#" class="category-item">Tools</a>
-    <a href="#" class="category-item">Electronics</a>
-    <a href="#" class="category-item">Kitchen</a>
-    <a href="#" class="category-item">Outdoor</a>
-    <a href="#" class="category-item">Media</a>
-    <a href="#" class="category-item">Sports</a>
-  </div>
 
   <div class="grid-container">
     <div class="content-side">
@@ -57,21 +46,21 @@
         <div class="date-picker-custom">
           <div class="date-box">
             <label>START DATE</label>
-            <input type="date" value="2026-01-28">
+            <input type="date" id="startDate" value="2026-02-14">
           </div>
           <div class="date-box">
             <label>END DATE</label>
-            <input type="date" value="2026-01-30">
+            <input type="date" id="endDate" value="2026-02-16">
           </div>
         </div>
 
         <div class="cost-breakdown">
-          <div class="cost-item"><span>Duration</span> <span>2 Days</span></div>
+          <div class="cost-item"><span>Duration</span> <span id="duration-text">2 Days</span></div>
           <div class="cost-item"><span>Security deposit</span> <span>₹5,000</span></div>
-          <div class="cost-item total"><span>Total cost</span> <span>₹6,099</span></div>
+          <div class="cost-item total"><span>Total cost</span> <span id="total-text">₹6,000</span></div>
         </div>
 
-        <button class="btn-primary">Reserve Item</button>
+        <button class="btn-primary" id="reserveBtn">Reserve Item</button>
         
         <div class="neighbor-info">
           <div class="avatar"></div>
@@ -84,5 +73,6 @@
     </div>
   </div>
 
+  <script src="script.js"></script>
 </body>
 </html>

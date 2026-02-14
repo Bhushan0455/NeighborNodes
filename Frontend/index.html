@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <script src="script.js"></script>
+  <title>NeighborNodes - Home</title>
 </head>
 <body>
 
@@ -15,7 +15,7 @@
     </div>
     <nav>
       <a href="#">Cart</a>
-      <a href="#">AI Assisant</a>
+      <a href="#">AI Assistant</a>
       <a href="#">Login/Signup</a>
       <a href="#">Profile</a>
     </nav>
@@ -23,7 +23,7 @@
 
   <div class="category-bar">
     <a href="#" class="category-item"><span class="category-text">Utility Tools</span></a>
-     <a href="#" class="category-item"><span class="category-text">Hardware</span></a>
+    <a href="#" class="category-item"><span class="category-text">Hardware</span></a>
     <a href="#" class="category-item"><span class="category-text">Electronics</span></a>
     <a href="#" class="category-item"><span class="category-text">Camping</span></a>
     <a href="#" class="category-item"><span class="category-text">Gaming</span></a>
@@ -50,7 +50,7 @@
           </div>
           <div class="price-row">
             <span class="price">₹500<small style="font-size:12px; font-weight:400; color:var(--slate-500)">/day</small></span>
-            <a href="Borrow.html" class="borrow-btn">Borrow</a>
+            <a href="borrow.html" class="borrow-btn" data-item-id="1">Borrow</a>
           </div>
         </div>
 
@@ -58,15 +58,20 @@
           <span class="badge top-pick-badge">TOP PICK</span>
           <div class="card-img-wrapper"></div>
           <div class="item-name">DJI Mavic Air 2</div>
-          <div class="card-meta"><span><span class="rating">4.9 ★</span> (12)</span><span style="color:var(--slate-500)">1.1km away</span></div>
+          <div class="card-meta">
+            <span><span class="rating">4.9 ★</span> (12)</span>
+            <span style="color:var(--slate-500)">1.1km away</span>
+          </div>
           <div class="price-row">
             <span class="price">₹800<small style="font-size:12px">/day</small></span>
-            <a href="borrow.html" class="borrow-btn">Borrow</a>
+            <a href="borrow.html" class="borrow-btn" data-item-id="2">Borrow</a>
           </div>
         </div>
-        </div>
+
+      </div>
     </div>
   </div>
 
+  <script src="script.js"></script>
 </body>
 </html>

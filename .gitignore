@@ -1,0 +1,11 @@
+# Database credentials and API keys
+.env
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+
+# OS specific files
+.DS_Store
