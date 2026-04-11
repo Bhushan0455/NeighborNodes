@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="List your item on NeighborNodes and earn by lending to neighbors.">
+  <title>List an Item — NeighborNodes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header>
+    <a href="index.html" class="logo-text">Neighbor<span>Nodes</span>.</a>
+    <nav>
+      <a href="index.html">Explore</a>
+      <a href="Dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <div class="form-page">
+    <div class="form-card">
+      <h2>📦 List Your Item</h2>
+      <p class="form-subtitle">Share your rarely-used items with neighbors and earn extra income.</p>
+
+      <form id="listItemForm">
+        <div class="form-group">
+          <label for="itemName">Item Name</label>
+          <input type="text" id="itemName" placeholder="e.g. Sony Alpha A7III" required>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" required>
+            <option value="">Select a category</option>
+            <option value="utility_tools">Utility Tools</option>
+            <option value="hardware">Hardware</option>
+            <option value="electronics">Electronics</option>
+            <option value="camping">Camping</option>
+            <option value="gaming">Gaming</option>
+            <option value="home_appliances">Home Appliances</option>
+            <option value="kitchen">Kitchen</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="price">Price Per Day (₹)</label>
+          <input type="number" id="price" placeholder="500" required min="1">
+        </div>
+
+        <div class="form-group">
+          <label for="imageUrl">Image URL</label>
+          <div class="img-preview-area" id="imgPreview">
+            <span>Image preview will appear here</span>
+          </div>
+          <input type="url" id="imageUrl" placeholder="Paste an image link (Unsplash, Google, etc.)" required>
+          <small>Tip: Right-click any image online → Copy image address.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" rows="3" placeholder="Describe your item — condition, accessories, usage tips…"></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary">Post Listing</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

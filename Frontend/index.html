@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NeighborNodes — Borrow tools, electronics, and gear from trusted neighbors. Save money and reduce waste.">
+  <title>NeighborNodes — Borrow from Your Neighbors</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header>
+    <a href="index.html" class="logo-text">Neighbor<span>Nodes</span>.</a>
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search tools, cameras, camping gear…">
+    </div>
+    <nav>
+      <a href="index.html">Explore</a>
+      <a href="#" id="aiAssistantBtn">AI Assistant</a>
+      <a href="Dashboard.html">Dashboard</a>
+      <a href="auth.html" class="login-link">Login / Signup</a>
+      <a href="ListItem.html" class="nav-cta">+ List an Item</a>
+    </nav>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-badge">🌱 Sustainable Community Sharing</div>
+    <h1>Borrow, Don't Buy.<br><em>Share with Neighbors.</em></h1>
+    <p>Why buy rarely-used items when your neighbors already have them? Save money, reduce waste, and build community trust.</p>
+    <a href="#map-section" class="hero-cta">Explore Nearby →</a>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">500+</div><div class="stat-label">Items Shared</div></div>
+      <div class="stat"><div class="stat-num">1.2k</div><div class="stat-label">Happy Neighbors</div></div>
+      <div class="stat"><div class="stat-num">₹8L+</div><div class="stat-label">Money Saved</div></div>
+    </div>
+  </section>
+
+  <!-- ===== CATEGORIES ===== -->
+  <div class="category-bar" id="categoryBar">
+    <a href="#" class="category-item active" data-category="All"><span class="category-icon">✨</span><span class="category-text">All</span></a>
+    <a href="#" class="category-item" data-category="utility_tools"><span class="category-icon">🔧</span><span class="category-text">Utility Tools</span></a>
+    <a href="#" class="category-item" data-category="hardware"><span class="category-icon">🔩</span><span class="category-text">Hardware</span></a>
+    <a href="#" class="category-item" data-category="electronics"><span class="category-icon">📱</span><span class="category-text">Electronics</span></a>
+    <a href="#" class="category-item" data-category="camping"><span class="category-icon">⛺</span><span class="category-text">Camping</span></a>
+    <a href="#" class="category-item" data-category="gaming"><span class="category-icon">🎮</span><span class="category-text">Gaming</span></a>
+    <a href="#" class="category-item" data-category="home_appliances"><span class="category-icon">🏠</span><span class="category-text">Home Appliances</span></a>
+    <a href="#" class="category-item" data-category="kitchen"><span class="category-icon">🍳</span><span class="category-text">Kitchen</span></a>
+  </div>
+
+  <!-- ===== 🌍 COMMUNITY MAP SECTION (NEW POSITION — ABOVE ITEMS) ===== -->
+  <section class="map-hero-section" id="map-section">
+    <div class="map-hero-inner">
+      <!-- Left: Info + Nearby List -->
+      <div class="map-hero-info">
+        <div class="map-hero-label">
+          <span class="map-hero-label-dot"></span>
+          Live Community Map
+        </div>
+        <h2>Explore <em>Nearby Items</em></h2>
+        <p>Discover items available in your community, based on your pincode. Everything shown is within walking or short driving distance.</p>
+        <ul class="map-hero-features">
+          <li><span class="mhf-icon">📍</span> Items within walking distance</li>
+          <li><span class="mhf-icon">🔒</span> Shared securely with neighbors</li>
+          <li><span class="mhf-icon">🛡️</span> Exact addresses kept private</li>
+          <li><span class="mhf-icon">🤝</span> Verified & trusted profiles</li>
+        </ul>
+        <!-- Nearby items list (populated by script.js) -->
+        <div class="nearby-items-list" id="nearbyItemsList">
+          <div class="nearby-items-loading">
+            <div class="nearby-item skeleton-item"><div class="skeleton-icon"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-dist"></div></div>
+            <div class="nearby-item skeleton-item"><div class="skeleton-icon"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-dist"></div></div>
+            <div class="nearby-item skeleton-item"><div class="skeleton-icon"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-dist"></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Map -->
+      <div class="map-hero-map-wrap">
+        <div id="community-map"></div>
+        <div class="map-hero-map-overlay">
+          <span>🔒 Approximate locations shown for privacy</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FEATURED ITEMS ===== -->
+  <div class="container" id="featured">
+    <div class="section-header">
+      <h2>🔥 Top Picks For You</h2>
+      <a href="#">View all</a>
+    </div>
+    
+    <div class="privacy-notice" style="margin-bottom: 24px;">
+      <div class="privacy-notice-icon">🛡️</div>
+      <div>Locations shown are approximate for safety. Exact pickup details are shared only after borrowing is approved.</div>
+    </div>
+
+    <div class="item-grid-scroll" id="top-picks-scroll">
+      <!-- Items rendered dynamically by script.js -->
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>Neighbor<span>Nodes</span>.</h3>
+        <p>A community-powered borrowing platform. Share more, own less, and build stronger neighborhoods together.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="index.html">Explore Items</a>
+        <a href="ListItem.html">List an Item</a>
+        <a href="Dashboard.html">Dashboard</a>
+      </div>
+      <div class="footer-col">
+        <h4>Categories</h4>
+        <a href="#">Utility Tools</a>
+        <a href="#">Electronics</a>
+        <a href="#">Camping Gear</a>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <a href="auth.html">Login</a>
+        <a href="auth.html">Sign Up</a>
+        <a href="#">Help & Support</a>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 NeighborNodes. Built with 💚 for communities.</div>
+  </footer>
+
+  <!-- ===== CHATBOT FAB ===== -->
+  <button id="chatFab" class="chatbot-fab" title="AI Assistant">💬</button>
+
+  <!-- ===== AI CHATBOT PANEL ===== -->
+  <div id="chatbotPanel" class="chatbot-panel hidden">
+    <div class="chatbot-header">
+      <div>
+        <h3>NeighborNodes Assistant</h3>
+        <p>Ask me about borrowing, listing, or finding items.</p>
+      </div>
+      <button id="closeChatbotBtn" class="chatbot-close-btn">&times;</button>
+    </div>
+    <div id="chatMessages" class="chatbot-messages">
+      <div class="bot-message">
+        Hi! 👋 I'm your NeighborNodes assistant. I can help you find items, explain borrowing, and guide you through the platform.
+      </div>
+    </div>
+    <div class="chatbot-suggestions">
+      <button class="suggestion-btn">How do I borrow?</button>
+      <button class="suggestion-btn">Show camping items</button>
+      <button class="suggestion-btn">What is trust score?</button>
+    </div>
+    <div class="chatbot-input-area">
+      <input type="text" id="chatInput" placeholder="Type your question…" />
+      <button id="sendChatBtn">Send</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

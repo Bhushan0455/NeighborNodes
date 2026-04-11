@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login or create your NeighborNodes account to borrow and lend with neighbors.">
+  <title>NeighborNodes — Login / Sign Up</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-page">
+    <div class="auth-container">
+
+      <!-- LEFT BRAND PANEL -->
+      <div class="auth-brand">
+        <a href="index.html" class="logo-text" style="color:#fff; margin-bottom:32px; display:inline-block;">Neighbor<span>Nodes</span>.</a>
+        <h2>Join Your<br>Community Circle</h2>
+        <p>Share items with trusted neighbors, save money, and reduce waste — all within walking distance.</p>
+        <ul class="auth-brand-features">
+          <li><span>🔧</span> Borrow tools you need occasionally</li>
+          <li><span>💰</span> Earn by lending items you rarely use</li>
+          <li><span>🌱</span> Reduce waste, live sustainably</li>
+          <li><span>🛡️</span> Verified neighbors, secure deposits</li>
+        </ul>
+      </div>
+
+      <!-- RIGHT FORM PANEL -->
+      <div class="auth-form-wrap">
+        <h2 id="authTitle">Login</h2>
+        <form id="authForm">
+          <div id="signupFields" style="display:none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="authName">Full Name</label>
+                <input type="text" id="authName" placeholder="Amit Sharma">
+              </div>
+              <div class="form-group">
+                <label for="authPhone">Phone Number</label>
+                <input type="text" id="authPhone" placeholder="10-digit number">
+              </div>
+            </div>
+
+            <div class="form-section-divider">
+              <span>Location Details</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="authLocality">Locality / Area</label>
+                <input type="text" id="authLocality" placeholder="e.g. Nerul East">
+              </div>
+              <div class="form-group">
+                <label for="authPincode">Pincode</label>
+                <input type="text" id="authPincode" placeholder="e.g. 123456">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="authAddress">Full Address <span class="optional-label">(Optional, kept private)</span></label>
+              <textarea id="authAddress" placeholder="Flat No, Building Name, Street..." rows="2"></textarea>
+            </div>
+
+            <div class="privacy-hint" style="margin-bottom: 24px;">
+              <div class="privacy-hint-icon">🔒</div>
+              <div>
+                <strong>Privacy Protected</strong><br>
+                Your exact address will not be visible to others until you explicitly approve a borrow request. We only show your approximate locality.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="authEmail">Email</label>
+            <input type="email" id="authEmail" required placeholder="you@example.com">
+          </div>
+
+          <div class="form-group">
+            <label for="authPassword">Password</label>
+            <input type="password" id="authPassword" required placeholder="••••••••">
+          </div>
+
+          <button type="submit" id="authSubmitBtn" class="btn-primary">Login</button>
+        </form>
+
+        <p style="margin-top:24px; text-align:center; color:var(--slate-500); font-size:14px;">
+          <span id="toggleText">Don't have an account?</span>
+          <a href="#" id="toggleAuthLink" style="color:var(--primary); font-weight:700; margin-left:4px;">Sign Up</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

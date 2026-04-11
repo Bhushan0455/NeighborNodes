@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Borrow this item from a trusted neighbor on NeighborNodes.">
+  <title>NeighborNodes — Borrow Item</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header>
+    <a href="index.html" class="logo-text">Neighbor<span>Nodes</span>.</a>
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" placeholder="Find tools, cameras, or bikes…">
+    </div>
+    <nav class="nav-links">
+      <a href="index.html">Explore</a>
+      <a href="Dashboard.html">Dashboard</a>
+      <a href="auth.html" class="login-link">Sign In</a>
+    </nav>
+  </header>
+
+  <!-- BORROW LAYOUT -->
+  <div class="grid-container borrow-container">
+
+    <!-- LEFT: Item Display -->
+    <div class="content-side">
+      <div class="gallery-card">
+        <img src="" alt="Item image" class="item-main-image" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px;">
+      </div>
+      
+      <div class="location-info-card">
+        <h4><span class="loc-icon">📍</span> Item Location</h4>
+        <div class="loc-approx">
+          <div class="loc-approx-icon" id="itemLocalityIcon">🗺️</div>
+          <div class="loc-approx-text">
+            <strong id="itemLocality">Kalyan East (Approximate)</strong>
+            <span>Within your community circle</span>
+          </div>
+        </div>
+        <div class="loc-hidden-msg">
+          <span class="lock-icon">🔒</span>
+          <span>Exact address is hidden for privacy. It will be shared once your request is approved.</span>
+        </div>
+      </div>
+
+      <div class="item-info">
+        <span class="tag">Verified Item</span>
+        <h1 class="item-title">Loading Item…</h1>
+        <p class="item-description">Please wait while we fetch the details.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Booking Action -->
+    <div class="action-side">
+      <div class="action-card">
+        <div class="price-tag"><span class="price-amount">₹0</span> <span>/ day</span></div>
+
+        <div class="date-picker-custom">
+          <div class="date-box">
+            <label>START DATE</label>
+            <input type="date" id="startDate">
+          </div>
+          <div class="date-box">
+            <label>END DATE</label>
+            <input type="date" id="endDate">
+          </div>
+        </div>
+
+        <div class="cost-breakdown">
+          <div class="cost-item"><span>Duration</span> <span id="duration-text">0 Days</span></div>
+          <div class="cost-item"><span>Security deposit</span> <span>₹5,000</span></div>
+          <div class="cost-item total"><span>Total cost</span> <span id="total-text">₹0</span></div>
+        </div>
+
+        <button class="btn-primary" id="reserveBtn">Reserve Item</button>
+
+        <!-- Placeholder for accepted request address -->
+        <div class="pickup-address-card hidden-placeholder" id="pickupAddressSection">
+          <h4>📍 Pickup Address</h4>
+          <p>Hidden until request is approved</p>
+        </div>
+
+        <div class="neighbor-info">
+          <div class="avatar">👤</div>
+          <div>
+            <div class="owner-name">Owner Name</div>
+            <div class="trust-badge">⭐ Trusted Neighbor · Verified since 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

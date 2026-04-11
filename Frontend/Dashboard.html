@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your NeighborNodes dashboard — manage listings, requests, and borrowing history.">
+  <title>Dashboard — NeighborNodes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header>
+    <a href="index.html" class="logo-text">Neighbor<span>Nodes</span>.</a>
+    <nav class="nav-links">
+      <a href="index.html">Explore</a>
+      <a href="ListItem.html" class="nav-cta">+ List an Item</a>
+      <span class="login-link"></span>
+    </nav>
+  </header>
+
+  <div class="dashboard-wrap">
+
+    <!-- WELCOME BANNER -->
+    <div class="dash-welcome">
+      <h1 id="dashGreeting">Welcome back! 👋</h1>
+      <p>Manage your listings, track borrow requests, and see your activity.</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="dash-stats">
+      <div class="dash-stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-val" id="statListed">—</div>
+        <div class="stat-lbl">Items Listed</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-val" id="statRequests">—</div>
+        <div class="stat-lbl">Pending Requests</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="stat-icon">🤝</div>
+        <div class="stat-val" id="statBorrowed">—</div>
+        <div class="stat-lbl">Items Borrowed</div>
+      </div>
+    </div>
+
+    <!-- YOUR LISTED ITEMS -->
+    <div class="dashboard-section">
+      <h2><span class="section-icon">📦</span> Your Listed Items</h2>
+      <div id="myItemsList">
+        <p style="color: var(--slate-500);">Fetching your items…</p>
+      </div>
+    </div>
+
+    <!-- INCOMING BORROW REQUESTS -->
+    <div class="dashboard-section">
+      <h2><span class="section-icon">📋</span> Incoming Borrow Requests</h2>
+      <div class="dash-privacy-note" style="margin-bottom: 20px;">
+        <span class="note-icon">🛡️</span> Your exact address is only shared with the borrower after you accept their request.
+      </div>
+      <div id="requestList">
+        <p style="color: var(--slate-500);">No pending requests.</p>
+      </div>
+    </div>
+
+    <!-- MY BORROWING REQUESTS -->
+    <div class="dashboard-section">
+      <h2><span class="section-icon">🤝</span> My Borrowing Requests</h2>
+      <div class="dash-privacy-note" style="margin-bottom: 20px;">
+        <span class="note-icon">🔒</span> Exact pickup locations remain hidden until the owner approves your request.
+      </div>
+      <div id="borrowerRequestList">
+        <p style="color: var(--slate-500);">Loading your requests…</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
