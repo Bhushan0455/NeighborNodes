@@ -113,5 +113,18 @@ INSERT INTO items (owner_id, item_name, category, price_per_day, image_url, desc
 --To reset the database 
 TRUNCATE TABLE items RESTART IDENTITY CASCADE;
 
+-- 4. FEEDBACK / CONTACT TABLE
+CREATE TABLE feedback (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    category VARCHAR(50) DEFAULT 'general',
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'unread',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-
+-- View all feedback
+SELECT * FROM feedback ORDER BY created_at DESC;

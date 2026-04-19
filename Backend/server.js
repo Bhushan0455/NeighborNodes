@@ -7,6 +7,7 @@ const itemRoutes = require("./routes/itemRoutes");
 const authRoutes = require("./routes/authRoutes");
 const assistantRoutes = require("./routes/assistantRoutes");
 const locationRoutes = require("./routes/locationRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api/items", itemRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/assistant", assistantRoutes);
 app.use("/api/location", locationRoutes);
+app.use("/api/contact", contactRoutes);
 
 // 3. HEALTH CHECK / TEST ROUTE
 app.get("/", async (req, res) => {
@@ -35,7 +37,44 @@ app.get("/", async (req, res) => {
   }
 });
 
-//4.BORROWER DASHBOARD
+// 4. NOTIFICATION BADGE COUNT
+// Returns total actionable requests: pending incoming (lender) + pending outgoing (borrower)
+app.get('/api/notifications/count/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Count pending requests where user is the LENDER (incoming requests to act on)
+        const lenderResult = await pool.query(`
+            SELECT COUNT(*) AS count
+            FROM borrow_requests br
+            JOIN items i ON br.item_id = i.id
+            WHERE i.owner_id = $1 AND br.request_status = 'pending'
+        `, [userId]);
+
+        // Count pending requests where user is the BORROWER (awaiting response)
+        const borrowerResult = await pool.query(`
+            SELECT COUNT(*) AS count
+            FROM borrow_requests
+            WHERE borrower_id = $1 AND request_status = 'pending'
+        `, [userId]);
+
+        const lenderCount = parseInt(lenderResult.rows[0].count) || 0;
+        const borrowerCount = parseInt(borrowerResult.rows[0].count) || 0;
+        const total = lenderCount + borrowerCount;
+
+        res.json({
+            success: true,
+            total,
+            incoming: lenderCount,
+            outgoing: borrowerCount
+        });
+    } catch (err) {
+        console.error("Notification Count Error:", err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// 5. BORROWER DASHBOARD
 app.get('/api/borrower/requests/:userId', async (req, res) => {
     try {
         const { userId } = req.params;

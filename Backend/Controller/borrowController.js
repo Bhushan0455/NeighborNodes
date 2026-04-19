@@ -1,28 +1,80 @@
 const pool = require("../db"); // Import your database connection
 
-// 1. Create a new borrow request
+// ============================================================================
+// 1. Create a new borrow request (with row-level locking)
+//
+// RACE CONDITION PREVENTION:
+// --------------------------
+// Without locking, two borrowers could simultaneously submit requests
+// for the same item even after it's been marked 'unavailable'.
+// We lock the item row with FOR UPDATE, verify it's still 'available',
+// then insert the request — all inside a single transaction.
+// ============================================================================
 const createBorrow = async (req, res) => {
+    const client = await pool.connect();
+
     try {
-        // Destructure data coming from your Borrow.html form
         const { item_id, borrower_id, start_date, end_date } = req.body;
 
-        // SQL Query to insert the borrow request into your PostgreSQL table
-        const request = await pool.query(
-            "INSERT INTO borrow_requests (item_id, borrower_id, start_date, end_date) VALUES ($1, $2, $3, $4) RETURNING *",
+        // ── TRANSACTION START ──
+        await client.query("BEGIN");
+
+        // Lock the item row to prevent concurrent modifications.
+        // Any other transaction trying to borrow the same item will BLOCK here
+        // until this transaction completes.
+        const itemCheck = await client.query(
+            "SELECT id, status, owner_id FROM items WHERE id = $1 FOR UPDATE",
+            [item_id]
+        );
+
+        if (itemCheck.rows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({ success: false, error: "Item not found" });
+        }
+
+        const item = itemCheck.rows[0]; 
+
+        // Prevent borrowing your own item
+        if (item.owner_id === parseInt(borrower_id)) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({
+                success: false,
+                error: "You cannot borrow your own item."
+            });
+        }
+
+        // Check item is still available for borrowing
+        if (item.status !== 'available') {
+            await client.query("ROLLBACK");
+            return res.status(409).json({
+                success: false,
+                error: "This item is no longer available for borrowing."
+            });
+        }
+
+        // Insert the borrow request
+        const request = await client.query(
+            `INSERT INTO borrow_requests (item_id, borrower_id, start_date, end_date)
+             VALUES ($1, $2, $3, $4) RETURNING *`,
             [item_id, borrower_id, start_date, end_date]
         );
 
-        // Send back the newly created request as a JSON response
+        // ── TRANSACTION END ──
+        await client.query("COMMIT");
+
         res.status(201).json({
             success: true,
             data: request.rows[0]
         });
     } catch (err) {
+        await client.query("ROLLBACK");
         console.error("BORROW ERROR:", err.message);
-        res.status(500).json({ 
-            success: false, 
-            error: "Internal Server Error" 
+        res.status(500).json({
+            success: false,
+            error: "Internal Server Error"
         });
+    } finally {
+        client.release();
     }
 };
 
@@ -142,19 +194,32 @@ const markCollected = async (req, res) => {
     }
 };
 
+// ============================================================================
 // 4. Mark item as returned (Borrower: collected → returned)
+//
+// Uses a transaction to atomically:
+//   1. Mark the borrow request as 'returned'
+//   2. Set the item status back to 'available'
+// This ensures the item can be borrowed by others again.
+// ============================================================================
 const markReturned = async (req, res) => {
+    const client = await pool.connect();
+
     try {
         const { requestId } = req.params;
         const { borrower_id } = req.body;
 
-        // Verify the request exists and belongs to this borrower
-        const result = await pool.query(
-            "SELECT request_status, borrower_id FROM borrow_requests WHERE id = $1",
+        // ── TRANSACTION START ──
+        await client.query("BEGIN");
+
+        // Fetch the request with item_id for the status reset
+        const result = await client.query(
+            "SELECT request_status, borrower_id, item_id FROM borrow_requests WHERE id = $1",
             [requestId]
         );
 
         if (result.rows.length === 0) {
+            await client.query("ROLLBACK");
             return res.status(404).json({ success: false, error: "Request not found" });
         }
 
@@ -162,26 +227,47 @@ const markReturned = async (req, res) => {
 
         // Only the borrower can mark as returned
         if (parseInt(borrower_id) !== request.borrower_id) {
+            await client.query("ROLLBACK");
             return res.status(403).json({ success: false, error: "Only the borrower can mark this as returned" });
         }
 
         // Can only return if currently collected
         if (request.request_status !== 'collected') {
+            await client.query("ROLLBACK");
             return res.status(400).json({ 
                 success: false, 
                 error: `Cannot mark as returned. Current status is '${request.request_status}'` 
             });
         }
 
-        await pool.query(
+        // Lock the item row before updating its status
+        await client.query(
+            "SELECT id FROM items WHERE id = $1 FOR UPDATE",
+            [request.item_id]
+        );
+
+        // Mark borrow request as returned
+        await client.query(
             "UPDATE borrow_requests SET request_status = 'returned' WHERE id = $1",
             [requestId]
         );
 
-        res.json({ success: true, message: "Item marked as returned" });
+        // Set item back to 'available' so it can be borrowed again
+        await client.query(
+            "UPDATE items SET status = 'available' WHERE id = $1",
+            [request.item_id]
+        );
+
+        // ── TRANSACTION END ──
+        await client.query("COMMIT");
+
+        res.json({ success: true, message: "Item marked as returned and is now available again" });
     } catch (err) {
+        await client.query("ROLLBACK");
         console.error("Mark Returned Error:", err.message);
         res.status(500).json({ success: false, error: "Failed to update status" });
+    } finally {
+        client.release();
     }
 };
 

@@ -40,6 +40,26 @@ document.addEventListener("DOMContentLoaded", () => {
         dashGreeting.textContent = `Welcome back, ${userName}! 👋`;
     }
 
+    // --- NOTIFICATION BADGE (WhatsApp-style count on Dashboard link) ---
+    const navNotifBadge = document.getElementById("navNotifBadge");
+    if (navNotifBadge && userId) {
+        const fetchNotifCount = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/notifications/count/${userId}`);
+                const data = await res.json();
+                if (data.success && data.total > 0) {
+                    navNotifBadge.textContent = data.total > 99 ? '99+' : data.total;
+                    navNotifBadge.classList.add('visible');
+                } else {
+                    navNotifBadge.classList.remove('visible');
+                }
+            } catch (err) {
+                console.error("Notification badge fetch error:", err);
+            }
+        };
+        fetchNotifCount();
+    }
+
     // --- 3. HOME PAGE: FETCH ALL ITEMS ---
     if (topPicksScroll) {
         const fetchHomeItems = async (category = 'All') => {
@@ -871,3 +891,84 @@ window.togglePickupAddress = async (cardEl, requestId, userId) => {
         panel.innerHTML = '<div class="pickup-address-content"><p style="color:#dc2626; text-align:center;">⚠️ Failed to load address</p></div>';
     }
 };
+
+// --- CONTACT / FEEDBACK FORM LOGIC ---
+(function() {
+    const contactForm = document.getElementById("contactForm");
+    if (!contactForm) return;
+
+    const contactName = document.getElementById("contactName");
+    const contactEmail = document.getElementById("contactEmail");
+    const contactMessage = document.getElementById("contactMessage");
+    const charCount = document.getElementById("charCount");
+    const contactResult = document.getElementById("contactResult");
+    const submitBtn = document.getElementById("contactSubmitBtn");
+
+    // Auto-fill name if logged in
+    const userName = localStorage.getItem("userName");
+    if (userName && contactName) {
+        contactName.value = userName;
+    }
+
+    // Character counter for message textarea
+    if (contactMessage && charCount) {
+        contactMessage.addEventListener("input", () => {
+            const len = contactMessage.value.length;
+            charCount.textContent = len;
+            charCount.style.color = len > 900 ? '#dc2626' : len > 700 ? '#d97706' : '';
+        });
+    }
+
+    // Form submission
+    contactForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Hide any previous result
+        contactResult.classList.add("hidden");
+        contactResult.classList.remove("success", "error");
+
+        // Show loading state
+        submitBtn.classList.add("loading");
+        submitBtn.disabled = true;
+
+        const payload = {
+            name: contactName.value.trim(),
+            email: contactEmail.value.trim(),
+            category: document.getElementById("contactCategory").value,
+            subject: document.getElementById("contactSubject").value.trim(),
+            message: contactMessage.value.trim(),
+            user_id: localStorage.getItem("userId") || null
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/contact`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                contactResult.textContent = "✅ " + result.message;
+                contactResult.classList.remove("hidden");
+                contactResult.classList.add("success");
+                contactForm.reset();
+                if (charCount) charCount.textContent = "0";
+                // Re-fill name if logged in
+                if (userName && contactName) contactName.value = userName;
+            } else {
+                contactResult.textContent = "❌ " + (result.error || "Submission failed.");
+                contactResult.classList.remove("hidden");
+                contactResult.classList.add("error");
+            }
+        } catch (error) {
+            console.error("Contact form error:", error);
+            contactResult.textContent = "❌ Server connection failed. Please try again.";
+            contactResult.classList.remove("hidden");
+            contactResult.classList.add("error");
+        } finally {
+            submitBtn.classList.remove("loading");
+            submitBtn.disabled = false;
+        }
+    });
+})();

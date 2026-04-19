@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Contact Us — Share your feedback, report issues, or suggest features for NeighborNodes.">
+  <title>Contact Us — NeighborNodes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header>
+    <a href="index.html" class="logo-text">Neighbor<span>Nodes</span>.</a>
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" placeholder="Search tools, cameras, camping gear…">
+    </div>
+    <nav>
+      <a href="index.html">Explore</a>
+      <a href="Dashboard.html" class="nav-dash-link" id="navDashLink">Dashboard<span class="nav-notif-badge" id="navNotifBadge"></span></a>
+      <a href="auth.html" class="login-link">Login / Signup</a>
+      <a href="ListItem.html" class="nav-cta">+ List an Item</a>
+    </nav>
+  </header>
+
+  <!-- ===== CONTACT HERO ===== -->
+  <section class="contact-hero">
+    <div class="contact-hero-glow"></div>
+    <div class="contact-hero-badge">💬 We'd Love to Hear From You</div>
+    <h1>Contact <em>Us</em></h1>
+    <p>Have feedback, a question, or found a bug? Drop us a message and we'll get back to you as soon as possible.</p>
+  </section>
+
+  <!-- ===== CONTACT CONTENT ===== -->
+  <div class="contact-container">
+
+    <!-- LEFT: Info Cards -->
+    <div class="contact-info-side">
+      <div class="contact-info-card">
+        <div class="cic-icon">📧</div>
+        <h4>Email Us</h4>
+        <p>support@neighbornodes.com</p>
+      </div>
+      <div class="contact-info-card">
+        <div class="cic-icon">💡</div>
+        <h4>Suggest a Feature</h4>
+        <p>We actively build features from user feedback. Your idea could be next!</p>
+      </div>
+      <div class="contact-info-card">
+        <div class="cic-icon">🐛</div>
+        <h4>Report a Bug</h4>
+        <p>Found something broken? Let us know so we can fix it fast.</p>
+      </div>
+      <div class="contact-info-card">
+        <div class="cic-icon">🤝</div>
+        <h4>Community</h4>
+        <p>Join 1.2k+ neighbors already sharing and saving together.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Form -->
+    <div class="contact-form-card">
+      <div class="contact-form-header">
+        <h2>Send us a Message</h2>
+        <p class="contact-form-subtitle">Fill in the details below and we'll respond within 24 hours.</p>
+      </div>
+
+      <form id="contactForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contactName">Your Name</label>
+            <input type="text" id="contactName" placeholder="e.g. Rahul Sharma" required>
+          </div>
+          <div class="form-group">
+            <label for="contactEmail">Email Address</label>
+            <input type="email" id="contactEmail" placeholder="you@example.com" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contactCategory">Category</label>
+            <select id="contactCategory" required>
+              <option value="" disabled selected>Select a topic</option>
+              <option value="general">General Inquiry</option>
+              <option value="feedback">Feedback</option>
+              <option value="bug_report">Bug Report</option>
+              <option value="feature_request">Feature Request</option>
+              <option value="account_issue">Account Issue</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="contactSubject">Subject</label>
+            <input type="text" id="contactSubject" placeholder="Brief subject line" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" rows="5" placeholder="Tell us what's on your mind…" required maxlength="1000"></textarea>
+          <div class="char-counter"><span id="charCount">0</span> / 1000</div>
+        </div>
+
+        <!-- Feedback result message -->
+        <div id="contactResult" class="contact-result hidden"></div>
+
+        <button type="submit" class="btn-primary contact-submit-btn" id="contactSubmitBtn">
+          <span class="btn-text">Send Message →</span>
+          <span class="btn-loader hidden">
+            <span class="spinner"></span> Sending…
+          </span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>Neighbor<span>Nodes</span>.</h3>
+        <p>A community-powered borrowing platform. Share more, own less, and build stronger neighborhoods together.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="index.html">Explore Items</a>
+        <a href="ListItem.html">List an Item</a>
+        <a href="Dashboard.html">Dashboard</a>
+      </div>
+      <div class="footer-col">
+        <h4>Categories</h4>
+        <a href="#">Utility Tools</a>
+        <a href="#">Electronics</a>
+        <a href="#">Camping Gear</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="Contact.html">Contact Us</a>
+        <a href="auth.html">Login</a>
+        <a href="auth.html">Sign Up</a>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 NeighborNodes. Built with 💚 for communities.</div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
