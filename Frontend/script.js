@@ -1,5 +1,23 @@
 const API_BASE_URL = "http://localhost:5000/api";
 
+const apiFetch = async (url, options = {}) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        options.headers = {
+            ...options.headers,
+            "Authorization": `Bearer ${token}`
+        };
+    }
+    const response = await fetch(url, options);
+    // If the backend rejects the token, auto-logout the user
+    if (response.status === 401 || response.status === 403) {
+        localStorage.clear();
+        window.location.href = "auth.html";
+        throw new Error("Unauthorized");
+    }
+    return response;
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const path = window.location.pathname;
     const userId = localStorage.getItem("userId");
@@ -45,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (navNotifBadge && userId) {
         const fetchNotifCount = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/notifications/count/${userId}`);
+                const res = await apiFetch(`${API_BASE_URL}/notifications/count/${userId}`);
                 const data = await res.json();
                 if (data.success && data.total > 0) {
                     navNotifBadge.textContent = data.total > 99 ? '99+' : data.total;
@@ -74,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     url += url.includes('?') ? `&excludeUser=${userId}` : `?excludeUser=${userId}`;
                 }
                 
-                const response = await fetch(url);
+                const response = await apiFetch(url);
                 const result = await response.json();
 
                 if (result.success) {
@@ -170,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const fetchItemDetails = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/lender/items/${itemId}`); 
+                const response = await apiFetch(`${API_BASE_URL}/lender/items/${itemId}`); 
                 const result = await response.json();
                 if (result.success) {
                     const item = result.data;
@@ -200,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Hoist to window for access from global action handlers (instant refresh)
         const fetchBorrowerRequests = window._fetchBorrowerRequests = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/borrower/requests/${currentUserId}`);
+                const response = await apiFetch(`${API_BASE_URL}/borrower/requests/${currentUserId}`);
                 const result = await response.json();
                 if (result.success && result.data.length > 0) {
                     const statBorrowed = document.getElementById("statBorrowed");
@@ -297,7 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Hoist to window for access from global action handlers (instant refresh)
         const fetchDashboardData = window._fetchDashboardData = async () => {
             try {
-                const itemsRes = await fetch(`${API_BASE_URL}/lender/my-items/${currentUserId}`);
+                const itemsRes = await apiFetch(`${API_BASE_URL}/lender/my-items/${currentUserId}`);
                 const itemsResult = await itemsRes.json();
                 if (itemsResult.success && itemsResult.data.length > 0) {
                     const statListed = document.getElementById("statListed");
@@ -317,7 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     `).join('');
                 } else { myItemsList.innerHTML = "<p style='color:var(--slate-500);'>No items listed yet.</p>"; }
 
-                const reqRes = await fetch(`${API_BASE_URL}/lender/dashboard/${currentUserId}`);
+                const reqRes = await apiFetch(`${API_BASE_URL}/lender/dashboard/${currentUserId}`);
                 const reqResult = await reqRes.json();
                 if (reqResult.success && reqResult.data.length > 0) {
                     const statRequests = document.getElementById("statRequests");
@@ -436,13 +454,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 payload.role = 'lender'; 
             }
             try {
-                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                const response = await apiFetch(`${API_BASE_URL}${endpoint}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
                 if (result.success) {
+                    if (result.token) localStorage.setItem("token", result.token);
                     localStorage.setItem("userId", result.userId || result.user.id);
                     localStorage.setItem("userName", result.name || result.user.name);
                     alert(isSignup ? "Account Created!" : "Logged In!");
@@ -498,7 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 end_date: endVal
             };
             try {
-                const response = await fetch(`${API_BASE_URL}/borrow`, {
+                const response = await apiFetch(`${API_BASE_URL}/borrow`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(borrowData)
@@ -545,7 +564,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 user_id: parseInt(userId)
             };
             try {
-                const response = await fetch(`${API_BASE_URL}/lender/item`, {
+                const response = await apiFetch(`${API_BASE_URL}/lender/item`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(itemData)
@@ -601,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const sendMessageToAssistant = async (message) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/assistant/chat`, {
+            const response = await apiFetch(`${API_BASE_URL}/assistant/chat`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message })
@@ -650,7 +669,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/items/nearby/${userId}`);
+        const response = await apiFetch(`${API_BASE_URL}/items/nearby/${userId}`);
         const result = await response.json();
 
         if (result.success) {
@@ -722,7 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/location/items/nearby/${mapUserId}`);
+                const response = await apiFetch(`${API_BASE_URL}/location/items/nearby/${mapUserId}`);
                 const result = await response.json();
 
                 if (!result.success) {
@@ -837,7 +856,7 @@ const _refreshDashboard = () => {
 window.deleteItem = async (itemId) => {
     if (!confirm("Remove this listing?")) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/lender/item/${itemId}`, { method: "DELETE" });
+        const response = await apiFetch(`${API_BASE_URL}/lender/item/${itemId}`, { method: "DELETE" });
         if (response.ok) {
             // Instant refresh instead of page reload
             if (typeof window._fetchDashboardData === 'function') {
@@ -851,7 +870,7 @@ window.deleteItem = async (itemId) => {
 
 window.updateStatus = async (requestId, status) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/lender/request/${requestId}`, {
+        const response = await apiFetch(`${API_BASE_URL}/lender/request/${requestId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: status })
@@ -867,7 +886,7 @@ window.updateStatus = async (requestId, status) => {
 window.markCollected = async (requestId, borrowerId) => {
     if (!confirm("Confirm that you have collected this item?")) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/borrow/${requestId}/collect`, {
+        const response = await apiFetch(`${API_BASE_URL}/borrow/${requestId}/collect`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ borrower_id: borrowerId })
@@ -889,7 +908,7 @@ window.markCollected = async (requestId, borrowerId) => {
 window.markReturned = async (requestId, borrowerId) => {
     if (!confirm("Confirm that you have returned this item?")) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/borrow/${requestId}/return`, {
+        const response = await apiFetch(`${API_BASE_URL}/borrow/${requestId}/return`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ borrower_id: borrowerId })
@@ -928,7 +947,7 @@ window.togglePickupAddress = async (cardEl, requestId, userId) => {
     if (arrow) arrow.textContent = '▲';
 
     try {
-        const response = await fetch(`${API_BASE_URL}/borrow/address/${requestId}/${userId}`);
+        const response = await apiFetch(`${API_BASE_URL}/borrow/address/${requestId}/${userId}`);
         const result = await response.json();
 
         if (result.success && result.address_visible) {
@@ -1012,7 +1031,7 @@ window.togglePickupAddress = async (cardEl, requestId, userId) => {
         };
 
         try {
-            const response = await fetch(`${API_BASE_URL}/contact`, {
+            const response = await apiFetch(`${API_BASE_URL}/contact`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)

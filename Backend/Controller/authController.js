@@ -40,7 +40,10 @@ const register = async (req, res) => {
             [name, email, phone, hashedPassword, role || 'borrower', userLocality, pincode, address || '', latitude, longitude]
         );
 
-        res.json({ success: true, user: newUser.rows[0] });
+        const user = newUser.rows[0];
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'secret123', { expiresIn: '24h' });
+
+        res.json({ success: true, token, userId: user.id, name: user.name, user: user });
     } catch (err) {
         console.error("Registration Error:", err.message);
         res.status(500).json({ success: false, error: err.message });

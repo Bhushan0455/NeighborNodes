@@ -42,14 +42,17 @@ app.use('/api', async (req, res, next) => {
     next();
 });
 
+const authenticateToken = require("./utils/authMiddleware");
+
 // 3. ROUTES
-app.use("/api", borrowRoutes);
-app.use("/api/lender", lenderRoutes);
-app.use("/api/items", itemRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/items", itemRoutes);
 app.use("/api/assistant", assistantRoutes);
-app.use("/api/location", locationRoutes);
 app.use("/api/contact", contactRoutes);
+
+app.use("/api", authenticateToken, borrowRoutes); // API prefix is handled inside borrowRoutes
+app.use("/api/lender", authenticateToken, lenderRoutes);
+app.use("/api/location", authenticateToken, locationRoutes);
 
 // 3. HEALTH CHECK / TEST ROUTE
 app.get("/", async (req, res) => {
@@ -66,7 +69,7 @@ app.get("/", async (req, res) => {
 
 // 4. NOTIFICATION BADGE COUNT
 // Returns total actionable requests: pending incoming (lender) + pending outgoing (borrower)
-app.get('/api/notifications/count/:userId', async (req, res) => {
+app.get('/api/notifications/count/:userId', authenticateToken, async (req, res) => {
     try {
         const { userId } = req.params;
 
@@ -102,7 +105,7 @@ app.get('/api/notifications/count/:userId', async (req, res) => {
 });
 
 // 5. BORROWER DASHBOARD
-app.get('/api/borrower/requests/:userId', async (req, res) => {
+app.get('/api/borrower/requests/:userId', authenticateToken, async (req, res) => {
     try {
         const { userId } = req.params;
         
