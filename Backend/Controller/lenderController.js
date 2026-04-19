@@ -161,6 +161,7 @@ const updateRequestStatus = async (req, res) => {
         //   - Transaction B now unblocks, reads the UPDATED row,
         //     sees status = 'unavailable', and is safely rejected.
         // ──────────────────────────────────────────────────────────────────
+        // Step 2: Lock the item row to prevent concurrent modifications
         const itemResult = await client.query(
             "SELECT id, status FROM items WHERE id = $1 FOR UPDATE",
             [borrowRequest.item_id]
@@ -182,7 +183,7 @@ const updateRequestStatus = async (req, res) => {
             });
         }
 
-        // Step 4: Mark the item as unavailable (it's now being borrowed)
+        // Step 4: Mark the item as unavailable
         await client.query(
             "UPDATE items SET status = 'unavailable' WHERE id = $1",
             [borrowRequest.item_id]
@@ -194,7 +195,7 @@ const updateRequestStatus = async (req, res) => {
             [requestId]
         );
 
-        // Step 6: Auto-reject all OTHER pending requests for the same item.
+        // Step 6: Auto-reject ALL other pending requests for the same item.
         //         Since the item is now taken, no other request can be fulfilled.
         const rejectedResult = await client.query(
             `UPDATE borrow_requests 

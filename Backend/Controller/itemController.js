@@ -2,13 +2,24 @@ const pool = require("../db");
 
 const getAllItems = async (req, res) => {
     try {
-        const { category } = req.query;
+        const { category, excludeUser } = req.query;
         let query = "SELECT * FROM items";
         let params = [];
+        let conditions = [];
 
         if (category && category !== 'All') {
-            query += " WHERE category = $1";
+            conditions.push(`category = $${params.length + 1}`);
             params.push(category);
+        }
+
+        // Exclude logged-in user's own items from discovery
+        if (excludeUser) {
+            conditions.push(`owner_id != $${params.length + 1}`);
+            params.push(parseInt(excludeUser));
+        }
+
+        if (conditions.length > 0) {
+            query += " WHERE " + conditions.join(" AND ");
         }
 
         query += " ORDER BY created_at DESC";

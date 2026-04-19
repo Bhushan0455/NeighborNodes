@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const pool = require("./db"); // Your PostgreSQL connection logic
 const borrowRoutes = require("./routes/borrowRoutes");
 const lenderRoutes = require("./routes/lenderRoutes");
@@ -14,6 +15,9 @@ const app = express();
 // 1. MIDDLEWARE
 app.use(cors());
 app.use(express.json()); // Allows the server to accept JSON data from the frontend
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, "..", "Frontend")));
 
 // 2. ROUTES
 app.use("/api", borrowRoutes);

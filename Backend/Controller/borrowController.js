@@ -48,9 +48,28 @@ const createBorrow = async (req, res) => {
             await client.query("ROLLBACK");
             return res.status(409).json({
                 success: false,
-                error: "This item is no longer available for borrowing."
+                error: "This item is currently unavailable for borrowing."
             });
         }
+
+        // --- NEW LOGIC: Check for overlapping borrow requests ---
+        const overlapCheck = await client.query(
+            `SELECT id FROM borrow_requests 
+             WHERE item_id = $1 
+               AND request_status IN ('accepted', 'collected', 'overdue')
+               AND start_date <= $2 
+               AND end_date >= $3`,
+            [item_id, end_date, start_date]
+        );
+
+        if (overlapCheck.rows.length > 0) {
+            await client.query("ROLLBACK");
+            return res.status(409).json({
+                success: false,
+                error: "This item is already booked for the selected dates."
+            });
+        }
+        // --- END NEW LOGIC ---
 
         // Insert the borrow request
         const request = await client.query(

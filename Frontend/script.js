@@ -65,17 +65,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const fetchHomeItems = async (category = 'All') => {
             try {
                 const selectedCategory = category.trim();
-                const url = (selectedCategory === 'All' || selectedCategory === '') 
+                let url = (selectedCategory === 'All' || selectedCategory === '') 
                     ? `${API_BASE_URL}/items/all` 
                     : `${API_BASE_URL}/items/all?category=${selectedCategory}`;
+
+                // Hide logged-in user's own items from discovery
+                if (userId) {
+                    url += url.includes('?') ? `&excludeUser=${userId}` : `?excludeUser=${userId}`;
+                }
                 
                 const response = await fetch(url);
                 const result = await response.json();
 
                 if (result.success) {
-                    topPicksScroll.innerHTML = result.data.map(item => `
-                        <div class="item-card-scroll">
-                            <span class="badge top-pick-badge">NEW</span>
+                    topPicksScroll.innerHTML = result.data.map(item => {
+                        const isAvailable = item.status === 'available';
+                        return `
+                        <div class="item-card-scroll ${!isAvailable ? 'item-unavailable' : ''}">
+                            <span class="badge top-pick-badge ${!isAvailable ? 'badge-unavailable' : ''}">${isAvailable ? 'NEW' : 'UNAVAILABLE'}</span>
                             <div class="card-img-wrapper" style="background-image: url('${item.image_url || 'https://via.placeholder.com/300'}');background-size:cover;background-position:center;"></div>
                             <div class="item-name">${item.item_name}</div>
                             <div class="card-meta">
@@ -86,10 +93,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                             <div class="price-row">
                                 <span class="price">₹${item.price_per_day}<small>/day</small></span>
-                                <a href="Borrow.html?id=${item.id}" class="borrow-btn">Borrow</a>
+                                ${isAvailable 
+                                    ? `<a href="Borrow.html?id=${item.id}" class="borrow-btn">Borrow</a>`
+                                    : `<span class="borrow-btn borrow-btn-disabled">Unavailable</span>`
+                                }
                             </div>
                         </div>
-                    `).join('');
+                    `}).join('');
                 } else {
                     topPicksScroll.innerHTML = '<p style="color:var(--slate-500);text-align:center;width:100%;padding:40px 0;">No items found.</p>';
                 }
@@ -183,7 +193,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const currentUserId = parseInt(userId);
         const borrowerRequestList = document.getElementById("borrowerRequestList");
 
-        const fetchBorrowerRequests = async () => {
+        // Hoist to window for access from global action handlers (instant refresh)
+        const fetchBorrowerRequests = window._fetchBorrowerRequests = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/borrower/requests/${currentUserId}`);
                 const result = await response.json();
@@ -275,7 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        const fetchDashboardData = async () => {
+        // Hoist to window for access from global action handlers (instant refresh)
+        const fetchDashboardData = window._fetchDashboardData = async () => {
             try {
                 const itemsRes = await fetch(`${API_BASE_URL}/lender/my-items/${currentUserId}`);
                 const itemsResult = await itemsRes.json();
@@ -432,6 +444,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- 7. RESERVE BUTTON ---
+    // Helper: show inline feedback on borrow page
+    const showBorrowFeedback = (message, type) => {
+        const fb = document.getElementById("borrowFeedback");
+        if (!fb) return;
+        fb.textContent = message;
+        fb.className = `borrow-feedback ${type}`; // removes 'hidden', adds 'success' or 'error'
+    };
+
     if (reserveBtn) {
         reserveBtn.addEventListener("click", async (e) => {
             e.preventDefault();
@@ -439,8 +459,26 @@ document.addEventListener("DOMContentLoaded", () => {
             const endVal = document.getElementById("endDate").value;
             const urlParams = new URLSearchParams(window.location.search);
             const itemId = urlParams.get('id');
-            if (!startVal || !endVal) { alert("Please select both Start and End dates."); return; }
-            if (!userId) { alert("Please login to borrow!"); return; }
+
+            // Client-side date validation
+            if (!startVal || !endVal) {
+                showBorrowFeedback("Please select both Start and End dates.", "error");
+                return;
+            }
+            const today = new Date().toISOString().split('T')[0];
+            if (startVal < today) {
+                showBorrowFeedback("Start date cannot be in the past.", "error");
+                return;
+            }
+            if (endVal <= startVal) {
+                showBorrowFeedback("End date must be after the start date.", "error");
+                return;
+            }
+            if (!userId) {
+                showBorrowFeedback("Please login to borrow items.", "error");
+                return;
+            }
+
             const borrowData = {
                 item_id: parseInt(itemId),
                 borrower_id: parseInt(userId), 
@@ -455,11 +493,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert("✅ Request sent successfully!");
-                    reserveBtn.innerText = "Requested";
+                    showBorrowFeedback("✅ Request sent successfully! Check your dashboard for updates.", "success");
+                    reserveBtn.innerText = "✓ Requested";
                     reserveBtn.disabled = true;
-                } else { alert("❌ Error: " + result.error); }
-            } catch (error) { alert("Server connection failed."); }
+                    reserveBtn.style.opacity = "0.6";
+                } else {
+                    showBorrowFeedback("❌ " + result.error, "error");
+                }
+            } catch (error) {
+                showBorrowFeedback("❌ Server connection failed. Please try again.", "error");
+            }
         });
     }
 
@@ -773,11 +816,24 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- GLOBAL HELPERS ---
+// Helper: re-fetch dashboard data without full page reload
+const _refreshDashboard = () => {
+    if (typeof window._fetchDashboardData === 'function') window._fetchDashboardData();
+    if (typeof window._fetchBorrowerRequests === 'function') window._fetchBorrowerRequests();
+};
+
 window.deleteItem = async (itemId) => {
     if (!confirm("Remove this listing?")) return;
     try {
         const response = await fetch(`${API_BASE_URL}/lender/item/${itemId}`, { method: "DELETE" });
-        if (response.ok) location.reload();
+        if (response.ok) {
+            // Instant refresh instead of page reload
+            if (typeof window._fetchDashboardData === 'function') {
+                window._fetchDashboardData();
+            } else {
+                location.reload();
+            }
+        }
     } catch (error) { console.error("Delete failed"); }
 };
 
@@ -788,7 +844,10 @@ window.updateStatus = async (requestId, status) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: status })
         });
-        if (response.ok) location.reload(); 
+        if (response.ok) {
+            // Instant refresh — update both lender and borrower sections
+            _refreshDashboard();
+        }
     } catch (error) { console.error(error); }
 };
 
@@ -803,8 +862,8 @@ window.markCollected = async (requestId, borrowerId) => {
         });
         const result = await response.json();
         if (result.success) {
-            alert("✅ Item marked as collected!");
-            location.reload();
+            // Instant refresh instead of page reload
+            _refreshDashboard();
         } else {
             alert("❌ Error: " + result.error);
         }
@@ -825,8 +884,8 @@ window.markReturned = async (requestId, borrowerId) => {
         });
         const result = await response.json();
         if (result.success) {
-            alert("✅ Item marked as returned!");
-            location.reload();
+            // Instant refresh instead of page reload
+            _refreshDashboard();
         } else {
             alert("❌ Error: " + result.error);
         }

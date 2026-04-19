@@ -399,6 +399,25 @@ h2 {
 }
 .borrow-btn:hover { background: var(--primary); transform: translateY(-1px); }
 
+/* ===== UNAVAILABLE ITEM CARD STYLES ===== */
+.item-unavailable { opacity: 0.75; }
+.item-unavailable .card-img-wrapper { filter: grayscale(30%); }
+.badge-unavailable {
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+.borrow-btn-disabled {
+  background: var(--slate-300) !important;
+  color: var(--slate-500) !important;
+  cursor: not-allowed;
+  pointer-events: none;
+  font-size: 12px;
+}
+.borrow-btn-disabled:hover {
+  transform: none;
+  background: var(--slate-300) !important;
+}
+
 /* ===== 🌍 MAP HERO SECTION (Modern Community Map) ===== */
 .map-hero-section {
   padding: 48px 5% 24px;
@@ -873,6 +892,32 @@ h2 {
   box-shadow: 0 12px 32px rgba(16,185,129,0.3);
 }
 .btn-primary:disabled { background: var(--slate-400); cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ===== BORROW PAGE: INLINE FEEDBACK MESSAGE ===== */
+.borrow-feedback {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  animation: feedbackSlideIn 0.35s cubic-bezier(0.4,0,0.2,1);
+  line-height: 1.5;
+}
+.borrow-feedback.hidden { display: none; }
+.borrow-feedback.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+.borrow-feedback.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+@keyframes feedbackSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .neighbor-info {
   display: flex;
