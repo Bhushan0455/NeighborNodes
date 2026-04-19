@@ -70,7 +70,7 @@ NeighborNodes connects neighbors within the **same pincode** into a trusted shar
 ┌─────────────────────────────────────────────────────────────┐
 │                     BACKEND (Node.js + Express 5)           │
 │                                                             │
-│  server.js ─────── Entry point, middleware, route mounting   │
+│  server.js ─────── Entry point, middleware, route mounting  │
 │  db.js ─────────── PostgreSQL connection pool (pg)          │
 │                                                             │
 │  Controllers/                                               │
@@ -95,22 +95,22 @@ NeighborNodes connects neighbors within the **same pincode** into a trusted shar
                        │  SQL (pg driver)
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     DATABASE (PostgreSQL)                    │
+│                     DATABASE (PostgreSQL)                   │
 │                                                             │
 │  users ─────────── id, name, email, phone, password,        │
-│                    role, trust_score, locality, pincode,     │
-│                    full_address, latitude, longitude         │
+│                    role, trust_score, locality, pincode,    │
+│                    full_address, latitude, longitude        │
 │                                                             │
 │  items ─────────── id, owner_id (FK→users), item_name,      │
-│                    description, category, price_per_day,     │
-│                    status, image_url                         │
+│                    description, category, price_per_day,    │
+│                    status, image_url                        │
 │                                                             │
 │  borrow_requests ─ id, item_id (FK→items),                  │
-│                    borrower_id (FK→users), start_date,       │
-│                    end_date, total_price, request_status     │
+│                    borrower_id (FK→users), start_date,      │
+│                    end_date, total_price, request_status    │
 │                                                             │
 │  feedback ──────── id, user_id (FK→users), name, email,     │
-│                    category, subject, message, status        │
+│                    category, subject, message, status       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
