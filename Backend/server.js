@@ -18,8 +18,31 @@ app.use(express.json()); // Allows the server to accept JSON data from the front
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, "..", "Frontend")));
+// 2. AUTO-CANCEL UNCOLLECTED REQUESTS (Middleware)
+// Automatically run before fulfilling API requests to ensure DB is clean.
+// If a request is accepted but the start_date has passed (i.e. currently > start_date)
+// and the borrower hasn't marked it collected, it counts as a no-show and is auto-cancelled.
+app.use('/api', async (req, res, next) => {
+    try {
+        await pool.query(`
+            WITH cancelled AS (
+                UPDATE borrow_requests 
+                SET request_status = 'cancelled' 
+                WHERE request_status = 'accepted' AND start_date < CURRENT_DATE
+                RETURNING item_id
+            )
+            UPDATE items 
+            SET status = 'available' 
+            FROM cancelled 
+            WHERE items.id = cancelled.item_id
+        `);
+    } catch (err) {
+        console.error("Auto Cancel Error:", err.message);
+    }
+    next();
+});
 
-// 2. ROUTES
+// 3. ROUTES
 app.use("/api", borrowRoutes);
 app.use("/api/lender", lenderRoutes);
 app.use("/api/items", itemRoutes);

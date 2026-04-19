@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     topPicksScroll.innerHTML = result.data.map(item => {
                         const isAvailable = item.status === 'available';
                         return `
-                        <div class="item-card-scroll ${!isAvailable ? 'item-unavailable' : ''}">
+                        <div class="item-card-scroll ${!isAvailable ? 'item-unavailable' : ''}" onclick="window.location.href='Borrow.html?id=${item.id}'" style="cursor: pointer; transition: transform 0.2s;">
                             <span class="badge top-pick-badge ${!isAvailable ? 'badge-unavailable' : ''}">${isAvailable ? 'NEW' : 'UNAVAILABLE'}</span>
                             <div class="card-img-wrapper" style="background-image: url('${item.image_url || 'https://via.placeholder.com/300'}');background-size:cover;background-position:center;"></div>
                             <div class="item-name">${item.item_name}</div>
@@ -137,6 +137,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         const name = card.querySelector(".item-name")?.textContent.toLowerCase() || '';
                         card.style.display = (!query || name.includes(query)) ? '' : 'none';
                     });
+                    
+                    if (query && topPicksScroll) {
+                        topPicksScroll.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
                 }, 300);
             });
         }
@@ -225,6 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                         </div>` : 
                                         req.request_status === 'rejected' ?
                                         `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">❌</span> Request was declined</div>` :
+                                        req.request_status === 'cancelled' ?
+                                        `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">🚫</span> Auto-cancelled (No-show)</div>` :
                                         req.request_status === 'returned' ?
                                         `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">✅</span> Item successfully returned</div>` :
                                         `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">🔒</span> Exact address hidden until approved</div>`
@@ -259,6 +265,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     return `<span class="status-badge status-returned">✅ Returned</span>`;
                 case 'rejected':
                     return `<span class="status-badge status-rejected">❌ Rejected</span>`;
+                case 'cancelled':
+                    return `<span class="status-badge status-rejected">🚫 Cancelled</span>`;
                 default:
                     return `<span class="status-badge status-pending">${req.request_status}</span>`;
             }
@@ -354,6 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     return `<div class="dash-pickup-info available"><span class="note-icon">✅</span> Item has been returned</div>`;
                 case 'rejected':
                     return `<div class="dash-pickup-info hidden-addr"><span class="note-icon">❌</span> You declined this request</div>`;
+                case 'cancelled':
+                    return `<div class="dash-pickup-info hidden-addr"><span class="note-icon">🚫</span> Auto-cancelled (Borrower did not collect)</div>`;
                 default:
                     return '';
             }
@@ -377,6 +387,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     return `<span class="lifecycle-status-msg lifecycle-returned">✅ Returned</span>`;
                 case 'rejected':
                     return `<span class="status-badge status-rejected">❌ Rejected</span>`;
+                case 'cancelled':
+                    return `<span class="status-badge status-rejected">🚫 Cancelled</span>`;
                 default:
                     return `<span class="status-badge" style="background:${getStatusBg(req.request_status)};color:${getStatusColor(req.request_status)};">${req.request_status}</span>`;
             }
@@ -643,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (result.success) {
             topPicksScroll.innerHTML = result.data.map(item => `
-                <div class="item-card-scroll">
+                <div class="item-card-scroll" onclick="window.location.href='Borrow.html?id=${item.id}'" style="cursor: pointer; transition: transform 0.2s;">
                     <span class="badge top-pick-badge">NEARBY</span>
                     <div class="card-img-wrapper" style="background-image: url('${item.image_url || 'https://via.placeholder.com/300'}'); background-size: cover; background-position: center;"></div>
                     <div class="item-name">${item.item_name}</div>
