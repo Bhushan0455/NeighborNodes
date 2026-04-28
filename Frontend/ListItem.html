@@ -49,12 +49,12 @@
         </div>
 
         <div class="form-group">
-          <label for="imageUrl">Image URL</label>
+          <label for="imageFile">Upload Image</label>
           <div class="img-preview-area" id="imgPreview">
             <span>Image preview will appear here</span>
           </div>
-          <input type="url" id="imageUrl" placeholder="Paste an image link (Unsplash, Google, etc.)" required>
-          <small>Tip: Right-click any image online → Copy image address.</small>
+          <input type="file" id="imageFile" accept="image/jpeg, image/png, image/webp" required>
+          <small>Tip: Supported formats: JPG, PNG, WEBP.</small>
         </div>
 
         <div class="form-group">
@@ -67,6 +67,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -4,16 +4,26 @@ const db = require("../db");
 const getMyItems = async (req, res) => {
     const { ownerId } = req.params;
     try {
-        const items = await db.query("SELECT * FROM items WHERE owner_id = $1", [ownerId]);
+        const items = await db.query("SELECT * FROM items WHERE owner_id = $1 AND is_active = true", [ownerId]);
         res.json({ success: true, data: items.rows });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 
 // 2. Add a new item for lending
 const listItem = async (req, res) => {
-    const { owner_id, item_name, category, price_per_day, image_url, description } = req.body;
+    const { item_name, category, price_per_day, description } = req.body;
+    const owner_id = req.body.owner_id || req.body.user_id;
+
+    // Future-ready image handling: use local path if uploaded
+    let image_url = 'https://via.placeholder.com/600';
+    if (req.file) {
+        image_url = `/uploads/${req.file.filename}`;
+    } else if (req.body.image_url) {
+        image_url = req.body.image_url;
+    }
+
     try {
         const newItem = await db.query(
             "INSERT INTO items (owner_id, item_name, category, price_per_day, image_url, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
@@ -21,7 +31,8 @@ const listItem = async (req, res) => {
         );
         res.status(201).json({ success: true, data: newItem.rows[0] });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error("List Item Error:", err);
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 
@@ -44,7 +55,7 @@ const getLenderRequests = async (req, res) => {
         );
         res.json({ success: true, data: requests.rows });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 
@@ -111,7 +122,7 @@ const updateRequestStatus = async (req, res) => {
             return res.json({ success: true, message: "Request rejected" });
         } catch (err) {
             console.error("Reject Error:", err.message);
-            return res.status(500).json({ success: false, error: err.message });
+            return res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
         }
     }
 
@@ -246,32 +257,37 @@ const updateRequestStatus = async (req, res) => {
 const deleteItem = async (req, res) => {
     const { itemId } = req.params;
     try {
-        await db.query("DELETE FROM items WHERE id = $1", [itemId]);
+        await db.query("UPDATE items SET is_active = false WHERE id = $1", [itemId]);
         res.json({ success: true, message: "Item deleted" });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 
-//6. Fetch a single item by ID with owner details
-const getItemById = async (req, res) => {
-    const { id } = req.params;
+// 6. Update a listing
+const updateItem = async (req, res) => {
+    const { itemId } = req.params;
+    const { item_name, price_per_day } = req.body;
     try {
-        const item = await db.query(
-            `SELECT i.*, u.name as owner_name, u.locality 
-             FROM items i 
-             JOIN users u ON i.owner_id = u.id 
-             WHERE i.id = $1`, 
-            [id]
-        );
-        
-        if (item.rows.length === 0) {
+        // Fetch existing item to check if image needs updating
+        const existingItem = await db.query("SELECT * FROM items WHERE id = $1", [itemId]);
+        if (existingItem.rows.length === 0) {
             return res.status(404).json({ success: false, error: "Item not found" });
         }
-        
-        res.json({ success: true, data: item.rows[0] });
+
+        let image_url = existingItem.rows[0].image_url;
+        if (req.file) {
+            image_url = `/uploads/${req.file.filename}`;
+        }
+
+        const updated = await db.query(
+            "UPDATE items SET item_name = $1, price_per_day = $2, image_url = $3 WHERE id = $4 RETURNING *",
+            [item_name, price_per_day, image_url, itemId]
+        );
+        res.json({ success: true, data: updated.rows[0] });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error("Update Item Error:", err);
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 
@@ -282,5 +298,5 @@ module.exports = {
     getLenderRequests, 
     updateRequestStatus, 
     deleteItem,
-    getItemById 
+    updateItem
 };

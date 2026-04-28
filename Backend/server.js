@@ -18,31 +18,12 @@ app.use(express.json()); // Allows the server to accept JSON data from the front
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, "..", "Frontend")));
-// 2. AUTO-CANCEL UNCOLLECTED REQUESTS (Middleware)
-// Automatically run before fulfilling API requests to ensure DB is clean.
-// If a request is accepted but the start_date has passed (i.e. currently > start_date)
-// and the borrower hasn't marked it collected, it counts as a no-show and is auto-cancelled.
-app.use('/api', async (req, res, next) => {
-    try {
-        await pool.query(`
-            WITH cancelled AS (
-                UPDATE borrow_requests 
-                SET request_status = 'cancelled' 
-                WHERE request_status = 'accepted' AND start_date < CURRENT_DATE
-                RETURNING item_id
-            )
-            UPDATE items 
-            SET status = 'available' 
-            FROM cancelled 
-            WHERE items.id = cancelled.item_id
-        `);
-    } catch (err) {
-        console.error("Auto Cancel Error:", err.message);
-    }
-    next();
-});
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const authenticateToken = require("./utils/authMiddleware");
+const { startCronJobs } = require("./jobs/cronJobs");
+
+// Initialize asynchronous background cleanup tasks
+startCronJobs();
 
 // 3. ROUTES
 app.use("/api/auth", authRoutes);
@@ -68,7 +49,9 @@ app.get("/", async (req, res) => {
 });
 
 // 4. NOTIFICATION BADGE COUNT
-// Returns total actionable requests: pending incoming (lender) + pending outgoing (borrower)
+// Returns total actionable requests: 
+// LENDER: pending (needs approval)
+// BORROWER: accepted (needs collection) or overdue (needs return)
 app.get('/api/notifications/count/:userId', authenticateToken, async (req, res) => {
     try {
         const { userId } = req.params;
@@ -81,11 +64,11 @@ app.get('/api/notifications/count/:userId', authenticateToken, async (req, res) 
             WHERE i.owner_id = $1 AND br.request_status = 'pending'
         `, [userId]);
 
-        // Count pending requests where user is the BORROWER (awaiting response)
+        // Count actionable requests where user is the BORROWER
         const borrowerResult = await pool.query(`
             SELECT COUNT(*) AS count
             FROM borrow_requests
-            WHERE borrower_id = $1 AND request_status = 'pending'
+            WHERE borrower_id = $1 AND (request_status = 'accepted' OR (request_status = 'collected' AND end_date < CURRENT_DATE))
         `, [userId]);
 
         const lenderCount = parseInt(lenderResult.rows[0].count) || 0;
@@ -100,7 +83,7 @@ app.get('/api/notifications/count/:userId', authenticateToken, async (req, res) 
         });
     } catch (err) {
         console.error("Notification Count Error:", err.message);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 });
 
@@ -132,7 +115,7 @@ app.get('/api/borrower/requests/:userId', authenticateToken, async (req, res) =>
         res.json({ success: true, data: result.rows });
     } catch (err) {
         console.error("Borrower Dashboard Error:", err.message);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 });
 

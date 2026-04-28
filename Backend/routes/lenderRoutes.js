@@ -21,17 +21,18 @@ router.get("/dashboard/:userId", getLenderRequests);
 
 // --- 2. ITEM MANAGEMENT ---
 
+const { validate, listItemSchema } = require("../utils/validation");
+const upload = require("../utils/uploadMiddleware");
+
 // Post a new item for lending
-router.post("/list-item", listItem);
+// upload.single('image') handles multipart/form-data with a file field named 'image'
+router.post("/list-item", upload.single('image'), listItem);
+
+// Update a specific listing
+router.patch("/item/:itemId", upload.single('image'), require("../Controller/lenderController").updateItem);
 
 // Delete a specific listing
 router.delete("/item/:itemId", deleteItem);
-
-// --- 3. SINGLE ITEM VIEW (General paths last) ---
-
-// Fetch a single item by its ID for the Borrow page
-// Path: /api/lender/items/:id
-router.get("/items/:id", getItemById);
 
 // Update status of a borrow request (Accept/Reject)
 router.patch("/request/:requestId", updateRequestStatus);

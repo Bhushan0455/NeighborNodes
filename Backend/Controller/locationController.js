@@ -60,6 +60,7 @@ const getNearbyItems = async (req, res) => {
             WHERE LOWER(items.status) = 'available'
               AND items.owner_id != $1
               AND users.pincode = $2
+              AND items.is_active = true
             ORDER BY items.id DESC
         `, [currentUserId, currentUser.pincode]);
 

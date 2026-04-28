@@ -46,7 +46,7 @@ const register = async (req, res) => {
         res.json({ success: true, token, userId: user.id, name: user.name, user: user });
     } catch (err) {
         console.error("Registration Error:", err.message);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 
@@ -65,7 +65,7 @@ const login = async (req, res) => {
         
         res.json({ success: true, token, userId: user.rows[0].id, name: user.rows[0].name });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 

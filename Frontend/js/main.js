@@ -1,22 +1,5 @@
-const API_BASE_URL = "http://localhost:5000/api";
-
-const apiFetch = async (url, options = {}) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        options.headers = {
-            ...options.headers,
-            "Authorization": `Bearer ${token}`
-        };
-    }
-    const response = await fetch(url, options);
-    // If the backend rejects the token, auto-logout the user
-    if (response.status === 401 || response.status === 403) {
-        localStorage.clear();
-        window.location.href = "auth.html";
-        throw new Error("Unauthorized");
-    }
-    return response;
-};
+import { API_BASE_URL, apiFetch, getImageUrl } from './api.js';
+import { showToast, showConfirmModal } from './ui.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     const path = window.location.pathname;
@@ -25,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 0. ROUTE GUARD ---
     if ((path.includes("ListItem.html") || path.includes("dashboard") || path.includes("Dashboard")) && !userId) {
-        alert("Please login to access this page.");
+        showToast("Please login to access this page.", "info");
         window.location.href = "auth.html";
         return;
     }
@@ -83,15 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const fetchHomeItems = async (category = 'All') => {
             try {
                 const selectedCategory = category.trim();
-                let url = (selectedCategory === 'All' || selectedCategory === '') 
-                    ? `${API_BASE_URL}/items/all` 
+                let url = (selectedCategory === 'All' || selectedCategory === '')
+                    ? `${API_BASE_URL}/items/all`
                     : `${API_BASE_URL}/items/all?category=${selectedCategory}`;
 
                 // Hide logged-in user's own items from discovery
                 if (userId) {
                     url += url.includes('?') ? `&excludeUser=${userId}` : `?excludeUser=${userId}`;
                 }
-                
+
                 const response = await apiFetch(url);
                 const result = await response.json();
 
@@ -101,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         return `
                         <div class="item-card-scroll ${!isAvailable ? 'item-unavailable' : ''}" onclick="window.location.href='Borrow.html?id=${item.id}'" style="cursor: pointer; transition: transform 0.2s;">
                             <span class="badge top-pick-badge ${!isAvailable ? 'badge-unavailable' : ''}">${isAvailable ? 'NEW' : 'UNAVAILABLE'}</span>
-                            <div class="card-img-wrapper" style="background-image: url('${item.image_url || 'https://via.placeholder.com/300'}');background-size:cover;background-position:center;"></div>
+                            <div class="card-img-wrapper" style="background-image: url('${getImageUrl(item.image_url, 'https://via.placeholder.com/300')}');background-size:cover;background-position:center;"></div>
                             <div class="item-name">${item.item_name}</div>
                             <div class="card-meta">
                                 <span><span class="rating">5.0 ★</span> (0)</span>
@@ -111,17 +94,17 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                             <div class="price-row">
                                 <span class="price">₹${item.price_per_day}<small>/day</small></span>
-                                ${isAvailable 
-                                    ? `<a href="Borrow.html?id=${item.id}" class="borrow-btn">Borrow</a>`
-                                    : `<span class="borrow-btn borrow-btn-disabled">Unavailable</span>`
-                                }
+                                ${isAvailable
+                                ? `<a href="Borrow.html?id=${item.id}" class="borrow-btn">Borrow</a>`
+                                : `<span class="borrow-btn borrow-btn-disabled">Unavailable</span>`
+                            }
                             </div>
                         </div>
                     `}).join('');
                 } else {
                     topPicksScroll.innerHTML = '<p style="color:var(--slate-500);text-align:center;width:100%;padding:40px 0;">No items found.</p>';
                 }
-            } catch (error) { 
+            } catch (error) {
                 console.error("Home fetch error:", error);
                 topPicksScroll.innerHTML = '<p style="color:var(--slate-500);text-align:center;width:100%;padding:40px 0;">Unable to load items. Please check your connection.</p>';
             }
@@ -155,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const name = card.querySelector(".item-name")?.textContent.toLowerCase() || '';
                         card.style.display = (!query || name.includes(query)) ? '' : 'none';
                     });
-                    
+
                     if (query && topPicksScroll) {
                         topPicksScroll.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
@@ -178,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const end = new Date(endInput);
                 if (end > start) {
                     const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24));
-                    const securityDeposit = 5000; 
+                    const securityDeposit = 5000;
                     const total = (diffDays * pricePerDay) + securityDeposit;
                     document.getElementById("duration-text").innerText = `${diffDays} Days`;
                     document.getElementById("total-text").innerText = `₹${total.toLocaleString()}`;
@@ -188,12 +171,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const fetchItemDetails = async () => {
             try {
-                const response = await apiFetch(`${API_BASE_URL}/lender/items/${itemId}`); 
+                const response = await fetch(`${API_BASE_URL}/items/${itemId}`);
                 const result = await response.json();
                 if (result.success) {
                     const item = result.data;
                     pricePerDay = parseFloat(item.price_per_day) || 0;
-                    document.querySelector(".item-main-image").src = item.image_url || 'https://via.placeholder.com/600';
+                    document.querySelector(".item-main-image").src = getImageUrl(item.image_url, 'https://via.placeholder.com/600');
                     document.querySelector(".item-title").innerText = item.item_name;
                     document.querySelector(".item-description").innerText = item.description;
                     document.querySelector(".price-amount").innerText = `₹${pricePerDay}`;
@@ -225,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Count active borrows (accepted + collected)
                     const activeBorrows = result.data.filter(r => ['accepted', 'collected'].includes(r.request_status));
                     if (statBorrowed) statBorrowed.textContent = activeBorrows.length;
-                    
+
                     borrowerRequestList.innerHTML = result.data.map(req => {
                         const isOverdue = req.is_overdue;
                         const displayStatus = isOverdue ? 'overdue' : req.request_status;
@@ -240,19 +223,19 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <strong>${req.item_name}</strong>
                                     <span style="display:block; font-size:13px; color:var(--slate-500);">Owner: ${req.owner_name}</span>
                                     <small style="color:var(--slate-400);">${new Date(req.start_date).toLocaleDateString()} — ${new Date(req.end_date).toLocaleDateString()}</small>
-                                    ${showAddress ? 
-                                        `<div class="dash-pickup-info available">
+                                    ${showAddress ?
+                                `<div class="dash-pickup-info available">
                                             <span class="loc-pin">📍</span> Tap to view pickup address
                                             <span class="pickup-arrow">▼</span>
-                                        </div>` : 
-                                        req.request_status === 'rejected' ?
-                                        `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">❌</span> Request was declined</div>` :
-                                        req.request_status === 'cancelled' ?
+                                        </div>` :
+                                req.request_status === 'rejected' ?
+                                    `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">❌</span> Request was declined</div>` :
+                                    req.request_status === 'cancelled' ?
                                         `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">🚫</span> Auto-cancelled (No-show)</div>` :
                                         req.request_status === 'returned' ?
-                                        `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">✅</span> Item successfully returned</div>` :
-                                        `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">🔒</span> Exact address hidden until approved</div>`
-                                    }
+                                            `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">✅</span> Item successfully returned</div>` :
+                                            `<div class="dash-pickup-info hidden-addr"><span class="lock-icon">🔒</span> Exact address hidden until approved</div>`
+                            }
                                 </div>
                             </div>
                             <div class="dash-item-right">
@@ -300,7 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 default: return '#d97706';
             }
         };
-        
+
         const getStatusBg = (status) => {
             switch (status) {
                 case 'accepted': return '#d1fae5';
@@ -320,16 +303,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (itemsResult.success && itemsResult.data.length > 0) {
                     const statListed = document.getElementById("statListed");
                     if (statListed) statListed.textContent = itemsResult.data.length;
-                    
+
                     myItemsList.innerHTML = itemsResult.data.map(item => `
-                        <div class="dash-item-card">
+                        <div class="dash-item-card" onclick="window.openUpdateModal(${item.id}, '${item.item_name.replace(/'/g, "\\'")}', ${item.price_per_day})" style="cursor: pointer; transition: background 0.2s; border: 1px solid transparent;" onmouseover="this.style.border='1px solid var(--primary)'" onmouseout="this.style.border='1px solid transparent'">
                             <div class="dash-item-left">
-                                <img src="${item.image_url || 'https://via.placeholder.com/52'}" alt="${item.item_name}">
                                 <strong>${item.item_name}</strong>
                             </div>
                             <div class="dash-item-right">
                                 <span style="font-weight:700; color:var(--slate-800);">₹${item.price_per_day}/day</span>
-                                <button onclick="deleteItem(${item.id})" class="btn-delete">Delete</button>
                             </div>
                         </div>
                     `).join('');
@@ -340,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (reqResult.success && reqResult.data.length > 0) {
                     const statRequests = document.getElementById("statRequests");
                     if (statRequests) statRequests.textContent = reqResult.data.filter(r => r.request_status === 'pending').length;
-                    
+
                     requestList.innerHTML = reqResult.data.map(req => {
                         const isOverdue = req.is_overdue;
                         const displayStatus = isOverdue ? 'overdue' : req.request_status;
@@ -451,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 payload.locality = document.getElementById("authLocality").value;
                 payload.pincode = document.getElementById("authPincode").value;
                 payload.address = document.getElementById("authAddress").value;
-                payload.role = 'lender'; 
+                payload.role = 'lender';
             }
             try {
                 const response = await apiFetch(`${API_BASE_URL}${endpoint}`, {
@@ -464,12 +445,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (result.token) localStorage.setItem("token", result.token);
                     localStorage.setItem("userId", result.userId || result.user.id);
                     localStorage.setItem("userName", result.name || result.user.name);
-                    alert(isSignup ? "Account Created!" : "Logged In!");
-                    window.location.href = "index.html";
-                } else { alert("Error: " + result.error); }
-            } catch (error) { 
+                    showToast(isSignup ? "Account Created!" : "Logged In!", "success");
+                    setTimeout(() => window.location.href = "index.html", 1000);
+                } else { showToast("Error: " + result.error, "error"); }
+            } catch (error) {
                 console.error("Auth Error:", error);
-                alert("Connection to server failed."); 
+                showToast("Connection to server failed.", "error");
             }
         });
     }
@@ -512,7 +493,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const borrowData = {
                 item_id: parseInt(itemId),
-                borrower_id: parseInt(userId), 
+                borrower_id: parseInt(userId),
                 start_date: startVal,
                 end_date: endVal
             };
@@ -539,13 +520,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 8. LIST ITEM FORM ---
     if (listItemForm) {
-        const imageUrl = document.getElementById("imageUrl");
+        const imageFile = document.getElementById("imageFile");
         const imgPreview = document.getElementById("imgPreview");
-        if (imageUrl && imgPreview) {
-            imageUrl.addEventListener("input", () => {
-                const url = imageUrl.value.trim();
-                if (url) {
-                    imgPreview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<span>Invalid image URL</span>'">`;
+        if (imageFile && imgPreview) {
+            imageFile.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imgPreview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain;">`;
+                    };
+                    reader.readAsDataURL(file);
                 } else {
                     imgPreview.innerHTML = '<span>Image preview will appear here</span>';
                 }
@@ -554,27 +539,110 @@ document.addEventListener("DOMContentLoaded", () => {
 
         listItemForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            if (!userId) { alert("Please login first!"); return; }
-            const itemData = {
-                item_name: document.getElementById("itemName").value,
-                category: document.getElementById("category").value,
-                price_per_day: parseFloat(document.getElementById("price").value),
-                image_url: document.getElementById("imageUrl").value,
-                description: document.getElementById("description").value,
-                user_id: parseInt(userId)
-            };
+            if (!userId) { showToast("Please login first!", "info"); return; }
+
+            const formData = new FormData();
+            formData.append("item_name", document.getElementById("itemName").value);
+            formData.append("category", document.getElementById("category").value);
+            formData.append("price_per_day", document.getElementById("price").value);
+            formData.append("description", document.getElementById("description").value);
+            formData.append("user_id", userId);
+
+            if (imageFile && imageFile.files[0]) {
+                formData.append("image", imageFile.files[0]);
+            }
+
             try {
-                const response = await apiFetch(`${API_BASE_URL}/lender/item`, {
+                // When using FormData, do NOT set Content-Type header manually.
+                // Fetch will automatically set it with the correct boundary.
+                const response = await fetch(`${API_BASE_URL}/lender/list-item`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(itemData)
+                    headers: {
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    },
+                    body: formData
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert("✅ Item listed successfully!");
-                    window.location.href = "Dashboard.html";
-                } else { alert("Error: " + result.error); }
-            } catch (error) { alert("Server connection failed."); }
+                    showToast("Item listed successfully!", "success");
+                    setTimeout(() => window.location.href = "Dashboard.html", 1000);
+                } else { showToast("Error: " + result.error, "error"); }
+            } catch (error) { showToast("Server connection failed.", "error"); }
+        });
+    }
+
+    // Update Item Logic
+    window.openUpdateModal = (id, name, price) => {
+        document.getElementById("updateItemId").value = id;
+        document.getElementById("updateItemName").value = name;
+        document.getElementById("updateItemPrice").value = price;
+        const modal = document.getElementById("updateItemModal");
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    };
+
+    const updateItemForm = document.getElementById("updateItemForm");
+    if (updateItemForm) {
+        updateItemForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const itemId = document.getElementById("updateItemId").value;
+            const formData = new FormData();
+            formData.append("item_name", document.getElementById("updateItemName").value);
+            formData.append("price_per_day", document.getElementById("updateItemPrice").value);
+
+            const imageFile = document.getElementById("updateItemImage");
+            if (imageFile && imageFile.files[0]) {
+                formData.append("image", imageFile.files[0]);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/lender/item/${itemId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    },
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast("Item updated successfully!", "success");
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast("Error: " + result.error, "error");
+                }
+            } catch (error) {
+                showToast("Server connection failed.", "error");
+            }
+        });
+    }
+
+    const deleteItemBtn = document.getElementById("deleteItemBtn");
+    if (deleteItemBtn) {
+        deleteItemBtn.addEventListener("click", async () => {
+            const itemId = document.getElementById("updateItemId").value;
+            if (!itemId) return;
+
+            showConfirmModal({
+                heading: "Remove Listing?",
+                message: "Are you sure you want to remove this item listing?\nThis action cannot be undone.",
+                confirmText: "Remove Item",
+                cancelText: "Keep Listing",
+                onConfirm: async () => {
+                    try {
+                        const response = await apiFetch(`${API_BASE_URL}/lender/item/${itemId}`, { method: "DELETE" });
+                        const result = await response.json();
+                        if (result.success) {
+                            showToast("Item removed successfully.", "success");
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showToast("Error: " + result.error, "error");
+                        }
+                    } catch (error) {
+                        showToast("Server connection failed.", "error");
+                    }
+                }
+            });
         });
     }
 
@@ -661,22 +729,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const fetchNearbyItems = async () => {
-    try {
-        const userId = localStorage.getItem("userId");
+        try {
+            const userId = localStorage.getItem("userId");
 
-        if (!userId) {
-            console.log("No logged in user, cannot fetch nearby items.");
-            return;
-        }
+            if (!userId) {
+                console.log("No logged in user, cannot fetch nearby items.");
+                return;
+            }
 
-        const response = await apiFetch(`${API_BASE_URL}/items/nearby/${userId}`);
-        const result = await response.json();
+            const response = await apiFetch(`${API_BASE_URL}/items/nearby/${userId}`);
+            const result = await response.json();
 
-        if (result.success) {
-            topPicksScroll.innerHTML = result.data.map(item => `
+            if (result.success) {
+                topPicksScroll.innerHTML = result.data.map(item => `
                 <div class="item-card-scroll" onclick="window.location.href='Borrow.html?id=${item.id}'" style="cursor: pointer; transition: transform 0.2s;">
                     <span class="badge top-pick-badge">NEARBY</span>
-                    <div class="card-img-wrapper" style="background-image: url('${item.image_url || 'https://via.placeholder.com/300'}'); background-size: cover; background-position: center;"></div>
+                    <div class="card-img-wrapper" style="background-image: url('${getImageUrl(item.image_url, 'https://via.placeholder.com/300')}'); background-size: cover; background-position: center;"></div>
                     <div class="item-name">${item.item_name}</div>
                     <div class="card-meta">
                         <span><span class="rating">5.0 ★</span> Verified</span>
@@ -691,14 +759,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
             `).join("");
-        } else {
-            topPicksScroll.innerHTML = "<p>No nearby items found.</p>";
+            } else {
+                topPicksScroll.innerHTML = "<p>No nearby items found.</p>";
+            }
+        } catch (error) {
+            console.error("Nearby items fetch error:", error);
+            topPicksScroll.innerHTML = "<p>Failed to load nearby items.</p>";
         }
-    } catch (error) {
-        console.error("Nearby items fetch error:", error);
-        topPicksScroll.innerHTML = "<p>Failed to load nearby items.</p>";
-    }
-};
+    };
 
     // --- 11. LEAFLET MAP (Community Circle) - Dynamic ---
     const mapEl = document.getElementById("community-map");
@@ -854,18 +922,25 @@ const _refreshDashboard = () => {
 };
 
 window.deleteItem = async (itemId) => {
-    if (!confirm("Remove this listing?")) return;
-    try {
-        const response = await apiFetch(`${API_BASE_URL}/lender/item/${itemId}`, { method: "DELETE" });
-        if (response.ok) {
-            // Instant refresh instead of page reload
-            if (typeof window._fetchDashboardData === 'function') {
-                window._fetchDashboardData();
-            } else {
-                location.reload();
-            }
+    showConfirmModal({
+        heading: "Remove Listing?",
+        message: "Are you sure you want to remove this item listing?\nThis action cannot be undone.",
+        confirmText: "Remove Item",
+        cancelText: "Keep Listing",
+        onConfirm: async () => {
+            try {
+                const response = await apiFetch(`${API_BASE_URL}/lender/item/${itemId}`, { method: "DELETE" });
+                if (response.ok) {
+                    showToast("Item removed successfully.", "success");
+                    if (typeof window._fetchDashboardData === 'function') {
+                        window._fetchDashboardData();
+                    } else {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                }
+            } catch (error) { console.error("Delete failed"); }
         }
-    } catch (error) { console.error("Delete failed"); }
+    });
 };
 
 window.updateStatus = async (requestId, status) => {
@@ -884,46 +959,62 @@ window.updateStatus = async (requestId, status) => {
 
 // Borrower lifecycle: Mark item as collected (accepted → collected)
 window.markCollected = async (requestId, borrowerId) => {
-    if (!confirm("Confirm that you have collected this item?")) return;
-    try {
-        const response = await apiFetch(`${API_BASE_URL}/borrow/${requestId}/collect`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ borrower_id: borrowerId })
-        });
-        const result = await response.json();
-        if (result.success) {
-            // Instant refresh instead of page reload
-            _refreshDashboard();
-        } else {
-            alert("❌ Error: " + result.error);
+    showConfirmModal({
+        heading: "Confirm Collection",
+        message: "Confirm that you have collected this item?",
+        confirmText: "Confirm",
+        cancelText: "Cancel",
+        confirmColor: "#3b82f6",
+        onConfirm: async () => {
+            try {
+                const response = await apiFetch(`${API_BASE_URL}/borrow/${requestId}/collect`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ borrower_id: borrowerId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast("Marked as collected.", "success");
+                    _refreshDashboard();
+                } else {
+                    showToast("Error: " + result.error, "error");
+                }
+            } catch (error) {
+                console.error("Mark collected error:", error);
+                showToast("Server connection failed.", "error");
+            }
         }
-    } catch (error) { 
-        console.error("Mark collected error:", error);
-        alert("Server connection failed."); 
-    }
+    });
 };
 
 // Borrower lifecycle: Mark item as returned (collected → returned)
 window.markReturned = async (requestId, borrowerId) => {
-    if (!confirm("Confirm that you have returned this item?")) return;
-    try {
-        const response = await apiFetch(`${API_BASE_URL}/borrow/${requestId}/return`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ borrower_id: borrowerId })
-        });
-        const result = await response.json();
-        if (result.success) {
-            // Instant refresh instead of page reload
-            _refreshDashboard();
-        } else {
-            alert("❌ Error: " + result.error);
+    showConfirmModal({
+        heading: "Confirm Return",
+        message: "Confirm that you have returned this item?",
+        confirmText: "Confirm",
+        cancelText: "Cancel",
+        confirmColor: "#10b981",
+        onConfirm: async () => {
+            try {
+                const response = await apiFetch(`${API_BASE_URL}/borrow/${requestId}/return`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ borrower_id: borrowerId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast("Marked as returned.", "success");
+                    _refreshDashboard();
+                } else {
+                    showToast("Error: " + result.error, "error");
+                }
+            } catch (error) {
+                console.error("Mark returned error:", error);
+                showToast("Server connection failed.", "error");
+            }
         }
-    } catch (error) { 
-        console.error("Mark returned error:", error);
-        alert("Server connection failed."); 
-    }
+    });
 };
 
 // Toggle pickup address panel for accepted borrow requests
@@ -983,7 +1074,7 @@ window.togglePickupAddress = async (cardEl, requestId, userId) => {
 };
 
 // --- CONTACT / FEEDBACK FORM LOGIC ---
-(function() {
+(function () {
     const contactForm = document.getElementById("contactForm");
     if (!contactForm) return;
 
@@ -1039,23 +1130,17 @@ window.togglePickupAddress = async (cardEl, requestId, userId) => {
             const result = await response.json();
 
             if (result.success) {
-                contactResult.textContent = "✅ " + result.message;
-                contactResult.classList.remove("hidden");
-                contactResult.classList.add("success");
+                showToast(result.message, "success");
                 contactForm.reset();
                 if (charCount) charCount.textContent = "0";
                 // Re-fill name if logged in
                 if (userName && contactName) contactName.value = userName;
             } else {
-                contactResult.textContent = "❌ " + (result.error || "Submission failed.");
-                contactResult.classList.remove("hidden");
-                contactResult.classList.add("error");
+                showToast(result.error || "Submission failed.", "error");
             }
         } catch (error) {
             console.error("Contact form error:", error);
-            contactResult.textContent = "❌ Server connection failed. Please try again.";
-            contactResult.classList.remove("hidden");
-            contactResult.classList.add("error");
+            showToast("Server connection failed. Please try again.", "error");
         } finally {
             submitBtn.classList.remove("loading");
             submitBtn.disabled = false;

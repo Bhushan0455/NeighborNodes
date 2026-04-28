@@ -68,7 +68,7 @@ const getAllFeedback = async (req, res) => {
         });
     } catch (err) {
         console.error("Fetch Feedback Error:", err.message);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 

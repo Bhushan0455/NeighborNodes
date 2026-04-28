@@ -68,7 +68,7 @@
           <li><span class="mhf-icon">🛡️</span> Exact addresses kept private</li>
           <li><span class="mhf-icon">🤝</span> Verified & trusted profiles</li>
         </ul>
-        <!-- Nearby items list (populated by script.js) -->
+        <!-- Nearby items list (populated by js/main.js) -->
         <div class="nearby-items-list" id="nearbyItemsList">
           <div class="nearby-items-loading">
             <div class="nearby-item skeleton-item"><div class="skeleton-icon"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-dist"></div></div>
@@ -100,7 +100,7 @@
     </div>
 
     <div class="item-grid-scroll" id="top-picks-scroll">
-      <!-- Items rendered dynamically by script.js -->
+      <!-- Items rendered dynamically by js/main.js -->
     </div>
   </div>
 
@@ -162,6 +162,6 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="script.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ const getAllItems = async (req, res) => {
         const { category, excludeUser } = req.query;
         let query = "SELECT * FROM items";
         let params = [];
-        let conditions = [];
+        let conditions = ["is_active = true"];
 
         if (category && category !== 'All') {
             conditions.push(`category = $${params.length + 1}`);
@@ -26,8 +26,29 @@ const getAllItems = async (req, res) => {
         const result = await pool.query(query, params);
         res.json({ success: true, data: result.rows });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
     }
 };
 
-module.exports = { getAllItems };
+const getItemById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const item = await pool.query(
+            `SELECT i.*, u.name as owner_name, u.locality 
+             FROM items i 
+             JOIN users u ON i.owner_id = u.id 
+             WHERE i.id = $1 AND i.is_active = true`, 
+            [id]
+        );
+        
+        if (item.rows.length === 0) {
+            return res.status(404).json({ success: false, error: "Item not found" });
+        }
+        
+        res.json({ success: true, data: item.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'An unexpected error occurred. Please try again later.' });
+    }
+};
+
+module.exports = { getAllItems, getItemById };
