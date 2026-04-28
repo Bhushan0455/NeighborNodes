@@ -481,25 +481,6 @@ The chatbot **directly queries the database**, so it always returns real, curren
 
 ---
 
-## 🌍 Supported Coverage Areas
-
-The platform currently supports **100+ pincodes** across:
-
-| Region | Example Areas |
-|--------|--------------|
-| **Thane District** | Thane West/East, Naupada, Wagle Estate, Kolshet, Manpada, Ghodbunder Road |
-| **Kalyan / Dombivli** | Kalyan West/East, Dombivli West/East, Ambernath |
-| **Navi Mumbai** | Vashi, Nerul, Kopar Khairane, Airoli, Ghansoli, Panvel, Kharghar, Kamothe |
-| **Mumbai City** | Fort, Kalbadevi, Girgaon, Grant Road, Byculla, Parel, Dadar, Worli, Sion |
-| **Mumbai Suburbs** | Bandra, Andheri, Goregaon, Malad, Kandivali, Borivali, Powai, Mulund |
-| **Mira-Bhayander** | Mira Road, Bhayander West/East |
-| **Vasai / Virar** | Virar West/East, Vasai West, Nalasopara |
-| **Pune** | Camp, Station, Deccan, Shivajinagar, Hinjewadi, Hadapsar, Kothrud, Baner, Wakad |
-
-> To add a new pincode, simply add an entry to the `PINCODE_COORDS` object in `Backend/utils/pincodeMap.js`.
-
----
-
 ## 🛠️ Tech Stack
 
 | Layer | Technology | Why this choice |
